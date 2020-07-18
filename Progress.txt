@@ -1,0 +1,11 @@
+17072020
+* Identified curl request for token
+* Implemented function to put cookie into string
+* Started function to put token into string
+
+18072020
+Planned
+* Complete function to put token into string
+* Implement function that takes a token and puts the csv result into a
+    DataFrame
+* Implement function the calls getToken followed by getCSV

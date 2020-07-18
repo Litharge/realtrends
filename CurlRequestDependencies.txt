@@ -1,0 +1,61 @@
+All examples will be using keyword snow, location US
+
+~~Cookie request~~
+The first step, no token or cookie is needed for the cookie request
+To get the requried curl:
+Open google trends, enter a search term
+Delete cookies
+Reload page (429 error should be displayed)
+Select the topmost request in the network tab
+curl 'https://trends.google.com/trends/?geo=US'
+-H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'
+-H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+-H 'Accept-Language: en-GB,en;q=0.5'
+--compressed
+-H 'Referer: https://www.google.com/'
+-H 'Connection: keep-alive'
+-H 'Upgrade-Insecure-Requests: 1'
+-H 'TE: Trailers'
+
+~~Token request~~
+The main request needs a token which must be fetched from Google.
+Open the network tab and reload the page.
+Click the search just to the left of [all] [html] etc.
+Search ["token":], note that everything inside the square brackets must be searched for, including quotations
+The GET should now appear and can be right clicked and copied as curl, having the form of the curl below:
+curl
+'https://trends.google.com/trends/api/explore?hl=en-US&tz=-60&req=%7B%22comparisonItem%22:%5B%7B%22keyword%22:%22snow%22,%22geo%22:%22US%22,%22time%22:%22today+12-m%22%7D%5D,%22category%22:0,%22property%22:%22%22%7D&tz=-60'
+-H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'
+-H 'Accept: application/json, text/plain, */*'
+-H 'Accept-Language: en-GB,en;q=0.5'
+--compressed
+-H 'Connection: keep-alive'
+-H 'Referer: https://trends.google.com/trends/explore?q=snow&geo=US'
+-H 'Cookie: 1P_JAR=2020-7-17-19; NID=204=w0HAeM-wP8bG-GS17kcIMdyqvE6owyW_SbBFlTGAi3Yqwvv8pavCcdcDFV25-Iz8P-3hca2VXFzjMGOYSawO0VCiwveOX4f2FzHnoRvL-y98qSyMWsNoaoDb1mai9isKtYfPkDyWezzTM0Zuw2wXFwAg2Gp60WNjMM2mgD88Z3o; CONSENT=WP.289036'
+-H 'TE: Trailers'
+Note that this request for a token does require the NID=204 cookie, the others can be removed.
+This curl returns 4 tokens according to a grep search.
+Substituting them into Main CSV request from the terminal show that the first is needed, no others.
+
+~~Main CSV request~~
+curl
+'https://trends.google.com/trends/api/widgetdata/multiline/csv?req=%7B%22time%22%3A%222019-07-17%202020-07-17%22%2C%22resolution%22%3A%22WEEK%22%2C%22locale%22%3A%22en-US%22%2C%22comparisonItem%22%3A%5B%7B%22geo%22%3A%7B%22country%22%3A%22US%22%7D%2C%22complexKeywordsRestriction%22%3A%7B%22keyword%22%3A%5B%7B%22type%22%3A%22BROAD%22%2C%22value%22%3A%22snow%22%7D%5D%7D%7D%5D%2C%22requestOptions%22%3A%7B%22property%22%3A%22%22%2C%22backend%22%3A%22IZG%22%2C%22category%22%3A0%7D%7D&token=APP6_UEAAAAAXxNNRgUi_rh5x35UAFd-NzC7mKuEIpzg&tz=-60'
+-H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'
+-H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+-H 'Accept-Language: en-GB,en;q=0.5'
+--compressed
+-H 'Connection: keep-alive'
+-H 'Referer: https://trends.google.com/trends/explore?q=snow&geo=US'
+-H 'Cookie: NID=204=OtzgYkJW9-p8Xbhp7IgGpdVD9Gt0-ln15h7rfBLEosjqx4h7-y0YJePSL-KE9Uzog1TZmdTIEMis_iXI5GnVoGBCCfy7svW76vQoKUhTvp74ENSZzAxp93MAwfVZm7enND3kjywhntECoblgC0rzoilsfq1NOXF-HNe-eEBAW9Y; 1P_JAR=2020-7-17-19; CONSENT=WP.28901b'
+-H 'Upgrade-Insecure-Requests: 1'
+
+The cookie is not needed, only the token, giving the below
+curl
+'https://trends.google.com/trends/api/widgetdata/multiline/csv?req=%7B%22time%22%3A%222019-07-17%202020-07-17%22%2C%22resolution%22%3A%22WEEK%22%2C%22locale%22%3A%22en-US%22%2C%22comparisonItem%22%3A%5B%7B%22geo%22%3A%7B%22country%22%3A%22US%22%7D%2C%22complexKeywordsRestriction%22%3A%7B%22keyword%22%3A%5B%7B%22type%22%3A%22BROAD%22%2C%22value%22%3A%22snow%22%7D%5D%7D%7D%5D%2C%22requestOptions%22%3A%7B%22property%22%3A%22%22%2C%22backend%22%3A%22IZG%22%2C%22category%22%3A0%7D%7D&token=APP6_UEAAAAAXxNNRgUi_rh5x35UAFd-NzC7mKuEIpzg&tz=-60'
+-H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'
+-H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+-H 'Accept-Language: en-GB,en;q=0.5'
+--compressed
+-H 'Connection: keep-alive'
+-H 'Referer: https://trends.google.com/trends/explore?q=snow&geo=US'
+-H 'Upgrade-Insecure-Requests: 1'
