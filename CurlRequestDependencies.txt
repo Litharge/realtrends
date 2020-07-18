@@ -38,6 +38,7 @@ This curl returns 4 tokens according to a grep search.
 Substituting them into Main CSV request from the terminal show that the first is needed, no others.
 
 ~~Main CSV request~~
+17072020 valid
 curl
 'https://trends.google.com/trends/api/widgetdata/multiline/csv?req=%7B%22time%22%3A%222019-07-17%202020-07-17%22%2C%22resolution%22%3A%22WEEK%22%2C%22locale%22%3A%22en-US%22%2C%22comparisonItem%22%3A%5B%7B%22geo%22%3A%7B%22country%22%3A%22US%22%7D%2C%22complexKeywordsRestriction%22%3A%7B%22keyword%22%3A%5B%7B%22type%22%3A%22BROAD%22%2C%22value%22%3A%22snow%22%7D%5D%7D%7D%5D%2C%22requestOptions%22%3A%7B%22property%22%3A%22%22%2C%22backend%22%3A%22IZG%22%2C%22category%22%3A0%7D%7D&token=APP6_UEAAAAAXxNNRgUi_rh5x35UAFd-NzC7mKuEIpzg&tz=-60'
 -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'
@@ -59,3 +60,18 @@ curl
 -H 'Connection: keep-alive'
 -H 'Referer: https://trends.google.com/trends/explore?q=snow&geo=US'
 -H 'Upgrade-Insecure-Requests: 1'
+
+18072020 valid
+'https://trends.google.com/trends/api/widgetdata/multiline/csv?req=%7B%22time%22%3A%222019-07-18%202020-07-18%22%2C%22resolution%22%3A%22WEEK%22%2C%22locale%22%3A%22en-US%22%2C%22comparisonItem%22%3A%5B%7B%22geo%22%3A%7B%22country%22%3A%22US%22%7D%2C%22complexKeywordsRestriction%22%3A%7B%22keyword%22%3A%5B%7B%22type%22%3A%22BROAD%22%2C%22value%22%3A%22snow%22%7D%5D%7D%7D%5D%2C%22requestOptions%22%3A%7B%22property%22%3A%22%22%2C%22backend%22%3A%22IZG%22%2C%22category%22%3A0%7D%7D&token=APP6_UEAAAAAXxR9t6qP61XMfH3dvF1L_3H7jXzPqPHw&tz=-60'
+-H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'
+-H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+-H 'Accept-Language: en-GB,en;q=0.5'
+--compressed
+-H 'Connection: keep-alive'
+-H 'Referer: https://trends.google.com/trends/explore?q=snow&geo=US'
+-H 'Cookie: 1P_JAR=2020-7-18-17; NID=204=XsOVdqWxmhMpR7hWFNMMegW95loBh6DqxjnXDi-HEAV0oVF8MOZjh-3kMB4XBIWL7RjKUzszfSNV15y2_OyU0ii35eu0WBQ0Fdzf-xmSGR2uhHrd6cn6Fetf38_WnSjEF5-tv3fNWdI009rv8ORY1WQWbYOkB06Wi2vkhKbk0oNf-i1gmCKwpm6YWbykIvCdQj1cT0KPOjJkl8jjaWRMDViuHqqn7k16NMNerzE; CONSENT=YES+GB.en+20150628-20-0; SID=zQdxhWZXVAG4ztSsKQkNnAKTz8jSihV0Mv8ovjJuyPaVFymp1zCqncEyVhlY-ocb8Y2EwA.; __Secure-3PSID=zQdxhWZXVAG4ztSsKQkNnAKTz8jSihV0Mv8ovjJuyPaVFympIb44UNy6Ht3DYwe9CNPU2A.; HSID=ARQPoRWzpPDn7fzrL; SSID=Al4mTEuoHnYHBXHKM; APISID=xtGNEU-toLmxwouh/A1qE8BSejCJPmebN5; SAPISID=oXMtIf1QHaJbrP7m/AZDt9yzMXYHsuP6j8; __Secure-HSID=ARQPoRWzpPDn7fzrL; __Secure-SSID=Al4mTEuoHnYHBXHKM; __Secure-APISID=xtGNEU-toLmxwouh/A1qE8BSejCJPmebN5; __Secure-3PAPISID=oXMtIf1QHaJbrP7m/AZDt9yzMXYHsuP6j8; SIDCC=AJi4QfG5ff-SCoOOJY69p_vngOAG2fSASfCLXHZaLJMQi64c3uv-DkYMqnrb8lSPhWSuy6kqXCc'
+-H 'Upgrade-Insecure-Requests: 1'
+-H 'TE: Trailers'
+
+Note the difference (excluding the token) in the URL is 2019-07-17 -> 2019-07-18 and 2020-07-17 -> 2020-07-18
+The former was used on 18-07-2019 and no useful response was given
