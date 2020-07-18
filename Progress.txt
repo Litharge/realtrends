@@ -5,7 +5,7 @@
 
 18072020
 Planned
-* Complete function to put token into string
+* Complete function to put token into string DONE
 * Implement function that takes a token and puts the csv result into a
-    DataFrame
+    DataFrame PARTIAL
 * Implement function the calls getToken followed by getCSV

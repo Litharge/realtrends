@@ -2,6 +2,7 @@ import pycurl
 import io
 import re
 import urllib.parse
+import pandas
 
 
 # return a string containing the cookie
@@ -89,13 +90,24 @@ def getCSV(token):
     URL_string_end = "&token="
     URL_string_end = URL_string_end + token
     URL_string_end = URL_string_end + "&tz=-60"
+    # URL_string_mid contains request data
     # Notes for infering dynamic structure
     #
-    URL_string_mid = """{"time":"2019-07-18 2020-07-18","resolution":"WEEK","locale":"en-US","comparisonItem":[{"geo":{"country":"US"},"complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":"snow"}]}}],"requestOptions":{"property":"","backend":"IZG","category":0}}"""
-
+    URL_string_mid = """
+    {
+    "time":"2019-07-18 2020-07-18",
+    "resolution":"WEEK",
+    "locale":"en-US",
+    "comparisonItem":[
+        {"geo":{"country":"US"},
+        "complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":"snow"}]}}
+    ],
+    "requestOptions":{"property":"","backend":"IZG","category":0}
+    }
+    """
     #print(URL_string_mid)
     URL_string_mid = urllib.parse.quote(URL_string_mid)
-    #print(URL_string_mid)
+
 
     URL_string = URL_string_start + URL_string_mid + URL_string_end
 
@@ -112,7 +124,7 @@ def getCSV(token):
                            'Accept-Language: en-GB,en;q=0.5',
                            'Connection: keep-alive',
                            'Referer: https://trends.google.com/trends/explore?q=snow&geo=US',
-                           'Cookie: 1P_JAR=2020-7-18-17; NID=204=XsOVdqWxmhMpR7hWFNMMegW95loBh6DqxjnXDi-HEAV0oVF8MOZjh-3kMB4XBIWL7RjKUzszfSNV15y2_OyU0ii35eu0WBQ0Fdzf-xmSGR2uhHrd6cn6Fetf38_WnSjEF5-tv3fNWdI009rv8ORY1WQWbYOkB06Wi2vkhKbk0oNf-i1gmCKwpm6YWbykIvCdQj1cT0KPOjJkl8jjaWRMDViuHqqn7k16NMNerzE; CONSENT=YES+GB.en+20150628-20-0; SID=zQdxhWZXVAG4ztSsKQkNnAKTz8jSihV0Mv8ovjJuyPaVFymp1zCqncEyVhlY-ocb8Y2EwA.; __Secure-3PSID=zQdxhWZXVAG4ztSsKQkNnAKTz8jSihV0Mv8ovjJuyPaVFympIb44UNy6Ht3DYwe9CNPU2A.; HSID=ARQPoRWzpPDn7fzrL; SSID=Al4mTEuoHnYHBXHKM; APISID=xtGNEU-toLmxwouh/A1qE8BSejCJPmebN5; SAPISID=oXMtIf1QHaJbrP7m/AZDt9yzMXYHsuP6j8; __Secure-HSID=ARQPoRWzpPDn7fzrL; __Secure-SSID=Al4mTEuoHnYHBXHKM; __Secure-APISID=xtGNEU-toLmxwouh/A1qE8BSejCJPmebN5; __Secure-3PAPISID=oXMtIf1QHaJbrP7m/AZDt9yzMXYHsuP6j8; SIDCC=AJi4QfG5ff-SCoOOJY69p_vngOAG2fSASfCLXHZaLJMQi64c3uv-DkYMqnrb8lSPhWSuy6kqXCc'
+                           #'Cookie: 1P_JAR=2020-7-18-17; NID=204=XsOVdqWxmhMpR7hWFNMMegW95loBh6DqxjnXDi-HEAV0oVF8MOZjh-3kMB4XBIWL7RjKUzszfSNV15y2_OyU0ii35eu0WBQ0Fdzf-xmSGR2uhHrd6cn6Fetf38_WnSjEF5-tv3fNWdI009rv8ORY1WQWbYOkB06Wi2vkhKbk0oNf-i1gmCKwpm6YWbykIvCdQj1cT0KPOjJkl8jjaWRMDViuHqqn7k16NMNerzE; CONSENT=YES+GB.en+20150628-20-0; SID=zQdxhWZXVAG4ztSsKQkNnAKTz8jSihV0Mv8ovjJuyPaVFymp1zCqncEyVhlY-ocb8Y2EwA.; __Secure-3PSID=zQdxhWZXVAG4ztSsKQkNnAKTz8jSihV0Mv8ovjJuyPaVFympIb44UNy6Ht3DYwe9CNPU2A.; HSID=ARQPoRWzpPDn7fzrL; SSID=Al4mTEuoHnYHBXHKM; APISID=xtGNEU-toLmxwouh/A1qE8BSejCJPmebN5; SAPISID=oXMtIf1QHaJbrP7m/AZDt9yzMXYHsuP6j8; __Secure-HSID=ARQPoRWzpPDn7fzrL; __Secure-SSID=Al4mTEuoHnYHBXHKM; __Secure-APISID=xtGNEU-toLmxwouh/A1qE8BSejCJPmebN5; __Secure-3PAPISID=oXMtIf1QHaJbrP7m/AZDt9yzMXYHsuP6j8; SIDCC=AJi4QfG5ff-SCoOOJY69p_vngOAG2fSASfCLXHZaLJMQi64c3uv-DkYMqnrb8lSPhWSuy6kqXCc'
                            'Upgrade-Insecure-Requests: 1',
                            'TE: Trailers'
                        ]
@@ -122,9 +134,10 @@ def getCSV(token):
 
 # main
 
-# byteData = io.BytesIO()
+# get cookie
 cookie = getCookie()
-
-token = getToken(cookie)
-
-getCSV(token)
+for i in range(3):
+    # use cookie to get token
+    token = getToken(cookie)
+    # use token to get data
+    getCSV(token)
