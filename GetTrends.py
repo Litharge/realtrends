@@ -39,11 +39,14 @@ def getCookie():
     print(match_obj.group(0))
     return match_obj.group(0)
 
+# it is likely a loop will go in here, it looks like a list of locations and keywords are accepted
+# a list could be passed for this purpose
 def generate_token_URL_string_mid_comparisonItem_list(keyword):
     comparison_items = "{"
     comparison_items += "\"keyword\":\""
     comparison_items += keyword
-    comparison_items += "\",\"geo\":\"US\",\"time\":\"today 12-m\""
+    comparison_items += "\","
+    comparison_items += "\"geo\":\"US\",\"time\":\"today 12-m\""
     comparison_items += """}"""
     return comparison_items
 
@@ -119,7 +122,12 @@ def generate_CSV_URL_string_mid_time():
 def generate_CSV_URL_string_mid_locale():
     return """"locale":"en-US","""
 
-def generate_CSV_URL_string_mid_comparisonItem_list():
+# it is likely a loop will go in here, it looks like a list of locations and keywords are accepted
+def generate_CSV_URL_string_mid_comparisonItem_list(keyword):
+    comparison_item_list = """{"geo":{"country":"US"},"complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":\""""
+    comparison_item_list += keyword
+    comparison_item_list += """\"}]}}"""
+    return comparison_item_list
     return """
     {
         "geo":{"country":"US"},
@@ -127,11 +135,11 @@ def generate_CSV_URL_string_mid_comparisonItem_list():
         }
     """
 
-def generate_CSV_URL_string_mid_comparisonItem():
+def generate_CSV_URL_string_mid_comparisonItem(keyword):
     comparison_item = """
     "comparisonItem":[
     """
-    comparison_item += generate_CSV_URL_string_mid_comparisonItem_list()
+    comparison_item += generate_CSV_URL_string_mid_comparisonItem_list(keyword)
     comparison_item += "],"
     return comparison_item;
 
@@ -145,7 +153,7 @@ def generate_URL_string_mid(keyword):
     URL_string_mid = """{"""
     URL_string_mid += generate_CSV_URL_string_mid_time()
     URL_string_mid += generate_CSV_URL_string_mid_locale()
-    URL_string_mid += generate_CSV_URL_string_mid_comparisonItem()
+    URL_string_mid += generate_CSV_URL_string_mid_comparisonItem(keyword)
     URL_string_mid += generate_CSV_URL_string_mid_requestOptions()
     URL_string_mid += """}"""
     return URL_string_mid
@@ -206,5 +214,5 @@ def get_trend(keyword, cookie):
 # get cookie
 cookie = getCookie()
 
-trendsData = get_trend("snow", cookie)
+trendsData = get_trend("sunscreen", cookie)
 print(trendsData)
