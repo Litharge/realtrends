@@ -7,5 +7,10 @@
 Planned
 * Complete function to put token into string DONE
 * Implement function that takes a token and puts the csv result into a
-    DataFrame PARTIAL
-* Implement function the calls getToken followed by getCSV
+    DataFrame DONE
+* Implement function the calls getToken followed by getCSV DONE
+
+19072020
+Planned
+* Automatically substitute date ranges with a valid range
+* Modify functions to accept arbitrary keyword

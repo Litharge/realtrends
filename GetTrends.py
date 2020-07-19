@@ -39,13 +39,52 @@ def getCookie():
     print(match_obj.group(0))
     return match_obj.group(0)
 
+def generate_token_URL_string_mid_comparisonItem_list(keyword):
+    comparison_items = "{"
+    comparison_items += "\"keyword\":\""
+    comparison_items += keyword
+    comparison_items += "\",\"geo\":\"US\",\"time\":\"today 12-m\""
+    comparison_items += """}"""
+    return comparison_items
 
-def getToken(cookie):
+def generate_token_URL_string_mid_comparisonItem(keyword):
+    comparison_item = """
+    "comparisonItem":[
+    """
+    comparison_item +=  generate_token_URL_string_mid_comparisonItem_list(keyword)
+    comparison_item += """],"""
+
+    return comparison_item
+
+
+def generate_token_URL_string_mid_category():
+    return """"category":0,"""
+
+def generate_token_URL_string_mid_property():
+    return """
+    "property":""
+    """
+
+def generate_token_URL_string_mid(keyword):
+    token_URL_string_mid = """{"""
+    token_URL_string_mid += generate_token_URL_string_mid_comparisonItem(keyword)
+    token_URL_string_mid += generate_token_URL_string_mid_category()
+    token_URL_string_mid += generate_token_URL_string_mid_property()
+    token_URL_string_mid += """}"""
+    return token_URL_string_mid
+
+def getToken(keyword, cookie):
     # create pycurl object with the purpose of getting token
     tokenCurl = pycurl.Curl()
+    token_URL_string_start = "https://trends.google.com/trends/api/explore?hl=en-US&tz=-60&req="
+    token_URL_string_end = "&tz=-60"
+    token_URL_string_mid = generate_token_URL_string_mid(keyword)
+
+    token_URL_string_mid = urllib.parse.quote(token_URL_string_mid)
+
+    token_URL_string = token_URL_string_start + token_URL_string_mid + token_URL_string_end
     # set URL to request from, hard coded for now
-    tokenCurl.setopt(pycurl.URL,
-                     'https://trends.google.com/trends/api/explore?hl=en-US&tz=-60&req=%7B%22comparisonItem%22:%5B%7B%22keyword%22:%22snow%22,%22geo%22:%22US%22,%22time%22:%22today+12-m%22%7D%5D,%22category%22:0,%22property%22:%22%22%7D&tz=-60')
+    tokenCurl.setopt(pycurl.URL, token_URL_string)
     # set header values, hard coded for now. Including cookie passed to function
     cookieHeaderString = "Cookie: " + cookie
     tokenCurl.setopt(pycurl.HTTPHEADER,
@@ -58,42 +97,68 @@ def getToken(cookie):
                          cookieHeaderString,
                          'TE: Trailers'
                      ]
-                     )
+    )
 
     # get body
     response = tokenCurl.perform_rs()
     tokenCurl.close()
     #search for first token in response
     token_match_obj = re.search(r"\"token\":.*?,", response)
-    # remove starting: "token":"
+    # remove starting "token":"
     token = re.sub(r"\"token\":.*?\"", '', token_match_obj.group(0))
-    # remove trailing: ",
+    # remove trailing ",
     token = re.sub(r"\",", '', token)
 
     #print(token)
     return token
 
-def getCSV(token):
+def generate_CSV_URL_string_mid_time():
+    return """"time":"2019-07-19 2020-07-19",
+    "resolution":"WEEK","""
+
+def generate_CSV_URL_string_mid_locale():
+    return """"locale":"en-US","""
+
+def generate_CSV_URL_string_mid_comparisonItem_list():
+    return """
+    {
+        "geo":{"country":"US"},
+        "complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":"snow"}]}
+        }
+    """
+
+def generate_CSV_URL_string_mid_comparisonItem():
+    comparison_item = """
+    "comparisonItem":[
+    """
+    comparison_item += generate_CSV_URL_string_mid_comparisonItem_list()
+    comparison_item += "],"
+    return comparison_item;
+
+
+def generate_CSV_URL_string_mid_requestOptions():
+    return """
+        "requestOptions":{"property":"","backend":"IZG","category":0}
+        """
+
+def generate_URL_string_mid(keyword):
+    URL_string_mid = """{"""
+    URL_string_mid += generate_CSV_URL_string_mid_time()
+    URL_string_mid += generate_CSV_URL_string_mid_locale()
+    URL_string_mid += generate_CSV_URL_string_mid_comparisonItem()
+    URL_string_mid += generate_CSV_URL_string_mid_requestOptions()
+    URL_string_mid += """}"""
+    return URL_string_mid
+
+
+def getCSV(keyword, token, save_file = ""):
     #start and end components are not percent encoded
     URL_string_start = """https://trends.google.com/trends/api/widgetdata/multiline/csv?req="""
     URL_string_end = "&token="
     URL_string_end = URL_string_end + token
     URL_string_end = URL_string_end + "&tz=-60"
     # URL_string_mid contains request data
-    # Notes for infering dynamic structure
-    #
-    URL_string_mid = """
-    {
-    "time":"2019-07-18 2020-07-18",
-    "resolution":"WEEK",
-    "locale":"en-US",
-    "comparisonItem":[
-        {"geo":{"country":"US"},
-        "complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":"snow"}]}}
-    ],
-    "requestOptions":{"property":"","backend":"IZG","category":0}
-    }
-    """
+    URL_string_mid = generate_URL_string_mid(keyword)
     # Mid section of URL must use percent encoding
     URL_string_mid = urllib.parse.quote(URL_string_mid)
     # Assemble full URL
@@ -119,24 +184,27 @@ def getCSV(token):
     #file = open("test.csv", "wb")
     #requestCurl.setopt(pycurl.WRITEDATA, file)
     #DF = pandas.read_csv(requestCurl.perform())
+    # If no save file is given, put the data into a dataframe
+    if save_file == "":
+        response_string = requestCurl.perform_rs()
+        requestCurl.close()
+        # Clean top two lines of response, ready for conversion to datafram
+        response_string = re.sub(".*?\n\n", "", response_string)
+        # Produce StringIO object, insert data and return
+        response_IO_string = io.StringIO(response_string)
+        response_DF = pandas.read_csv(response_IO_string, sep=",")
+        return response_DF
+    else:
+        pass
 
-    response_string = requestCurl.perform_rs()
-    print(response_string)
-    requestCurl.close()
-    # Clean top two lines of response, ready for conversion to datafram
-    response_string = re.sub(".*?\n\n", "", response_string)
-    response_IO_string = io.StringIO(response_string)
-    response_DF = pandas.read_csv(response_IO_string, sep=",")
-
-    return response_DF
-
-# main
+def get_trend(keyword, cookie):
+    token = getToken(keyword, cookie)
+    # use token to get data
+    trendsData = getCSV(keyword, token)
+    return trendsData
 
 # get cookie
 cookie = getCookie()
-for i in range(1):
-    #use cookie to get token
-    token = getToken(cookie)
-    # use token to get data
-    trendsData = getCSV(token)
-    print(trendsData)
+
+trendsData = get_trend("snow", cookie)
+print(trendsData)

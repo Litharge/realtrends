@@ -75,3 +75,139 @@ curl
 
 Note the difference (excluding the token) in the URL is 2019-07-17 -> 2019-07-18 and 2020-07-17 -> 2020-07-18
 The former was used on 18-07-2019 and no useful response was given
+
+19072020
+Decoded Token and CSV requests for various keywords and locations
+Stripped of user agent, accept, accept-language, --compressed, connection, cookie, cache-control, te
+----------------------------
+keyword = sunscreen
+location = US
+time = past 12 months
+
+TOKEN
+curl
+'
+https://trends.google.com/trends/api/explore?hl=en-US&tz=-60&req=
+{
+"comparisonItem":
+    [
+    {
+    "keyword":"/m/01r0j5",
+    "geo":"US",
+    "time":"today 12-m"
+    }
+    ]
+,
+"category":0,
+"property":""
+}
+&tz=-60'
+-H 'Referer: https://trends.google.com/trends/explore?geo=US&q=/m/01r0j5'
+
+
+CSV
+curl
+'
+https://trends.google.com/trends/api/widgetdata/multiline/csv?req=
+{
+"time":"2019-07-19 2020-07-19",
+"resolution":"WEEK",
+"locale":"en-US",
+"comparisonItem":
+    [
+    {
+    "geo":{"country":"US"},
+    "complexKeywordsRestriction":{"keyword":[{"type":"ENTITY","value":"/m/01r0j5"}]}
+    }
+    ]
+    ,
+"requestOptions":{"property":"","backend":"IZG","category":0}
+}
+&token=APP6_UEAAAAAXxWL7ilrh8QdLAhI3QUKx5_d1A1pIO5u&tz=-60'
+-H 'Referer: https://trends.google.com/trends/explore?geo=US&q=/m/01r0j5'
+----------------------------
+Could "/m/01r0j5" refer to a cached value?
+Or maybe it refers to a topic, rather than a keyword.
+From now on, record what trends says the search is classed as, eg "search term" "topic"
+
+----------------------------
+keyword = weather "search term"
+location = US
+time = past 12 months
+
+TOKEN
+curl
+'https://trends.google.com/trends/api/explore?hl=en-US&tz=-60&req=
+{
+"comparisonItem":[{"keyword":"weather","geo":"US","time":"today 12-m"}],
+"category":0,
+"property":""
+}
+&tz=-60'
+-H 'Referer: https://trends.google.com/trends/explore?geo=US&q=weather'
+
+CSV
+curl
+'https://trends.google.com/trends/api/widgetdata/multiline/csv?req=
+{
+"time":"2019-07-19 2020-07-19",
+"resolution":"WEEK",
+"locale":"en-US",
+"comparisonItem":
+[
+{
+"geo":{"country":"US"},
+"complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":"weather"}]}
+}
+],
+"requestOptions":{"property":"","backend":"IZG","category":0}
+}
+&token=APP6_UEAAAAAXxWUa5s-VfOs7rHliXwnoR8WOnwt1X6e&tz=-60'
+-H 'Referer: https://trends.google.com/trends/explore?geo=US&q=weather'
+
+----------------------------
+keyword = weather "search term"
+location = US
+time = past 12 months
+
+TOKEN
+curl
+'
+https://trends.google.com/trends/api/explore?hl=en-US&tz=-60&req=
+{
+"comparisonItem":
+[
+{
+"keyword":"restuarants",
+"geo":"US",
+"time":"today 12-m"
+}
+],
+"category":0,
+"property":""
+}
+&tz=-60
+'
+-H 'Referer: https://trends.google.com/trends/explore?geo=US&q=restuarants'
+
+CSV
+curl
+'
+https://trends.google.com/trends/api/widgetdata/multiline/csv?req=
+{
+"time":"2019-07-19 2020-07-19",
+"resolution":"WEEK",
+"locale":"en-US",
+"comparisonItem":
+[
+{
+"geo":{"country":"US"},
+"complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":"restuarants"}]}
+}
+],
+"requestOptions":{"property":"","backend":"IZG","category":0}}
+&token=APP6_UEAAAAAXxW34bDuQtoycNn9GW47iHZEcvXsHsxk
+&tz=-60'
+-H 'Referer: https://trends.google.com/trends/explore?geo=US&q=restuarants'
+
+
