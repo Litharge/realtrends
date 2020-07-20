@@ -1,0 +1,13 @@
+# Hidden files except .gitignore
+.*
+
+!.gitignore
+
+# Distribution folder
+/dist/
+
+# Metadata
+/*.egg-info/
+
+# compiled modules
+*.pyc

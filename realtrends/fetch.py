@@ -1,8 +1,9 @@
-import pycurl
 import io
 import re
+
 import urllib.parse
 import pandas
+import pycurl
 
 
 # return a string containing the cookie
@@ -46,7 +47,7 @@ def generate_token_URL_string_mid_comparisonItem_list(keyword):
     comparison_items += "\"keyword\":\""
     comparison_items += keyword
     comparison_items += "\","
-    comparison_items += "\"geo\":\"US\",\"time\":\"today 12-m\""
+    comparison_items += """\"geo":"US","time":"today 12-m\""""
     comparison_items += """}"""
     return comparison_items
 
@@ -115,8 +116,9 @@ def getToken(keyword, cookie):
     #print(token)
     return token
 
+# TODO: change this manually for now, needs changing daily
 def generate_CSV_URL_string_mid_time():
-    return """"time":"2019-07-19 2020-07-19",
+    return """"time":"2019-07-20 2020-07-20",
     "resolution":"WEEK","""
 
 def generate_CSV_URL_string_mid_locale():
@@ -211,8 +213,4 @@ def get_trend(keyword, cookie):
     trendsData = getCSV(keyword, token)
     return trendsData
 
-# get cookie
-cookie = getCookie()
 
-trendsData = get_trend("sunscreen", cookie)
-print(trendsData)

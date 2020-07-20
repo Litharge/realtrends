@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "089272f29325f1652baae27cd40f307f6bc29770c0315af272600cf291f9f57b"
+            "sha256": "e831d682a99c386dd8f26e982db1d057f902e696ccedf6ba0863411855d985ec"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -107,6 +107,10 @@
                 "sha256:c35965d010ce31b23eeb663ed3cc8c906275d6be1a34393a1d73a41febf4a048"
             ],
             "version": "==2020.1"
+        },
+        "realtrends": {
+            "path": "./realtrends-0.1",
+            "version": "==0.1"
         },
         "six": {
             "hashes": [

@@ -207,7 +207,59 @@ https://trends.google.com/trends/api/widgetdata/multiline/csv?req=
 ],
 "requestOptions":{"property":"","backend":"IZG","category":0}}
 &token=APP6_UEAAAAAXxW34bDuQtoycNn9GW47iHZEcvXsHsxk
-&tz=-60'
+&tz=-60
+'
 -H 'Referer: https://trends.google.com/trends/explore?geo=US&q=restuarants'
 
+20072020
+Typing a term into the bar on the main page gives requests with responses including the codes needed
+for queries that are not just keywords, eg topics
+----------------------------
+keyword = snow
+location = worldwide
+time = past 12 months
 
+TOKEN
+curl
+'
+https://trends.google.co.uk/trends/api/explore?hl=en-US&tz=-60&req=
+{
+"comparisonItem":
+[
+{
+"keyword":"snow",
+"geo":"",
+"time":"today 12-m"
+}
+]
+,
+"category":0,
+"property":""
+}
+&tz=-60
+'
+-H 'Referer: https://trends.google.co.uk/trends/explore?q=snow'
+
+CSV
+curl
+'
+https://trends.google.co.uk/trends/api/widgetdata/multiline/csv?req=
+{
+"time":"2019-07-20 2020-07-20",
+"resolution":"WEEK",
+"locale":"en-US",
+"comparisonItem":
+[
+{
+"geo":{},
+"complexKeywordsRestriction":
+{
+"keyword":[{"type":"BROAD","value":"snow"}]
+}
+}
+]
+,
+"requestOptions":{"property":"","backend":"IZG","category":0}}
+&token=APP6_UEAAAAAXxbbBy88mckvEvfpKJYy6YcVNYDFhzTk&tz=-60
+'
+-H 'Referer: https://trends.google.co.uk/trends/explore?q=snow'
