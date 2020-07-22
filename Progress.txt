@@ -17,8 +17,12 @@ Mark any items from the list DONE and leave them at that day
 * Modify functions to accept arbitrary keyword DONE
 
 20072020
+* Refactoring
+
+22072020
+* Refactored
 Planned Core
-* Accept arbitrary geographical location
+* Accept arbitrary geographical location STARTED
 * Automatically substitute valid date range
 * Accept any time range allowed by google trends
 * Accept multiple keywords

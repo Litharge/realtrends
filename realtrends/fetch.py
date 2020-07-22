@@ -10,7 +10,7 @@ import pycountry
 
 class TrendsFetcher:
     cookie = ""
-    keyword = ""
+    keyword = []
     token = ""
     geo = ""
 
@@ -70,9 +70,12 @@ class TrendsFetcher:
     # it is likely a loop will go in here, it looks like a list of locations and keywords are accepted
     # a list could be passed for this purpose
     def generate_token_query_request_comparisonItem_list(self):
-        comparison_item_list = """\"keyword":"%s",\"geo":"%s","time":"today 12-m\"""" % (self.keyword, self.geo)
-        comparison_item_list = "{" + comparison_item_list + "}"
-        return comparison_item_list
+        comparison_item_list = ""
+        for kw in self.keyword:
+            comparison_item_list_element = """\"keyword":"%s",\"geo":"%s","time":"today 12-m\"""" % (kw, self.geo)
+            comparison_item_list_element = "{" + comparison_item_list_element + "},"
+            comparison_item_list += comparison_item_list_element
+        return comparison_item_list[:-1]
 
     def generate_token_query_request_comparisonItem(self):
         comparison_item =  self.generate_token_query_request_comparisonItem_list()
@@ -126,21 +129,23 @@ class TrendsFetcher:
 
     # it is likely a loop will go in here, it looks like a list of locations and keywords are accepted
     def generate_csv_query_request_comparison_item_list(self):
-        comparison_item_list = """
-        {
-            "geo":{%s},
-            "complexKeywordsRestriction":{
-                "keyword":[
-                    {
-                        "type":"BROAD",
-                        "value":"%s"
-                    }
-                ]
-            }
-        }
-        """ % (self.generate_csv_query_request_comparison_item_list_geo(), self.keyword)
+        comparison_item_list = ""
+        for kw in self.keyword:
+            comparison_item_list += """
+            {
+                "geo":{%s},
+                "complexKeywordsRestriction":{
+                    "keyword":[
+                        {
+                            "type":"BROAD",
+                            "value":"%s"
+                        }
+                    ]
+                }
+            },
+            """ % (self.generate_csv_query_request_comparison_item_list_geo(), kw)
 
-        return comparison_item_list
+        return comparison_item_list[:-1]
 
     def generate_csv_query_request_comparisonItem(self):
         comparison_item = """

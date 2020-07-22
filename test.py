@@ -6,7 +6,7 @@ from realtrends import TrendsFetcher
 
 test_fetcher = TrendsFetcher()
 
-test_fetcher.scrape_trend("snow", geo="US")
+test_fetcher.scrape_trend(["snow","ice"], geo="US")
 
 
 
