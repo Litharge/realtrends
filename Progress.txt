@@ -26,8 +26,9 @@ Planned Core
 * Accept multiple keywords DONE
 
 23072020
-* Automatically substitute valid date range
-* Accept any time range allowed by google trends
+* Automatically substitute valid date range STARTED
+* Accept any time range allowed by google trends STARTED
+Note for the above, as well as changing timerange, backend parameter must also be altered "IZG" -> "CM"
 
 Planned Addon
 * Get absolute volumes

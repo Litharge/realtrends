@@ -201,7 +201,7 @@ https://trends.google.com/trends/api/widgetdata/multiline/csv?req=
 
 
 
-22072020
+22072020 examples
 
 ----------------------------
 keyword = weather "search term"
@@ -432,3 +432,18 @@ req={
     }
 }&
 token=APP6_UEAAAAAXxm3jU0ZTUgZIrlxGbeVxgVcP7KKBY2u&tz=-60'
+
+23072020 token query request comparisonItem list time
+and csv query request time examples
+
+----------------------------
+keyword = weather "search term"
+location = US
+time = past 1 hour
+made 18:54:23
+
+TOKEN
+"time":"now 1-H"
+
+CSV
+"time":"2020-07-23T16\\:54\\:23 2020-07-23T17\\:54\\:23","resolution":"MINUTE"

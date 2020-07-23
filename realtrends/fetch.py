@@ -1,7 +1,9 @@
 import io
 import re
 import urllib.parse
+from datetime import date, datetime, timezone
 
+from dateutil.relativedelta import relativedelta
 import pandas
 import pycurl
 import pycountry
@@ -11,9 +13,11 @@ import pycountry
 
 class TrendsFetcher:
     cookie = ""
-    keywords = []
     token = ""
+
+    keywords = []
     geo = ""
+    time_range = ""
     trends_data = ""
 
     # Temporary headers taken from firefox on my machine
@@ -27,26 +31,26 @@ class TrendsFetcher:
     ]
 
     default_token_header = [
-        'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0',
-        'Accept: application/json, text/plain, */*',
-        'Accept-Language: en-GB,en;q=0.5',
-        'Connection: keep-alive',
-        'Referer: https://trends.google.com/trends/explore?q=snow&geo=US',
+        "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
+        "Accept: application/json, text/plain, */*",
+        "Accept-Language: en-GB,en;q=0.5",
+        "Connection: keep-alive",
+        "Referer: https://trends.google.com/trends/explore?q=snow&geo=US",
         # note that referer has a chance of being important, servers can block requests
         # without proper referer data. A member variable should be set to an initial
         # value and updated each time keyword is changed. TODO
-        'TE: Trailers'
+        "TE: Trailers"
     ]
 
     default_csv_header = [
-        'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0',
-       'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-       'Accept-Language: en-GB,en;q=0.5',
-       'Connection: keep-alive',
-       'Referer: https://trends.google.com/trends/explore?q=snow&geo=US',#note that this has a chance of being important, servers can block requests
+        "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0",
+        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language: en-GB,en;q=0.5",
+        "Connection: keep-alive",
+        "Referer: https://trends.google.com/trends/explore?q=snow&geo=US",#note that this has a chance of being important, servers can block requests
         #without proper referer data. A member variable should be set to an initial value and updated each time keyword is changed. TODO
-       'Upgrade-Insecure-Requests: 1',
-       'TE: Trailers'
+        "Upgrade-Insecure-Requests: 1",
+        "TE: Trailers"
     ]
 
     # Fetch a cookie, this is needed to fetch a token
@@ -71,9 +75,13 @@ class TrendsFetcher:
 
 
     def generate_token_query_request_comparison_item_list(self):
+        time_phrase = {"1H": "now 1-H", "12M": "today 12-m"}
+        token_time = time_phrase.get(self.time_range)
         comparison_item_list = ""
         for kw in self.keywords:
-            comparison_item_list_element = """\"keyword":"%s",\"geo":"%s","time":"today 12-m\"""" % (kw, self.geo)
+            comparison_item_list_element = """
+            "keyword":"%s","geo":"%s","time":"%s"
+            """ % (kw, self.geo, token_time)
             comparison_item_list_element = "{" + comparison_item_list_element + "},"
             comparison_item_list += comparison_item_list_element
         # Return the list except the last character, which is an unneeded comma
@@ -101,7 +109,8 @@ class TrendsFetcher:
         # get body as string
         response = token_curl.perform_rs()
         token_curl.close()
-        #search for first token in response
+        #
+        # search for first token in response
         token_match_obj = re.search(r"\"token\":.*?,", response)
         # remove starting "token":"
         self.token = re.sub(r"\"token\":.*?\"", '', token_match_obj.group(0))
@@ -110,10 +119,28 @@ class TrendsFetcher:
 
 
     def generate_csv_query_request_time(self):
+        resolution_phrase = {"12M":"WEEK","1H":"MINUTE"}
+        if self.time_range == "12M":
+            start_date_time = datetime.now(timezone.utc) - relativedelta(years = 1)
+            start_date_time = start_date_time.strftime("%Y-%m-%d")
+            end_date_time = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        elif self.time_range == "1H":
+            start_date_time = datetime.now(timezone.utc) - relativedelta(hours = 1)
+            start_date_time = start_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
+            end_date_time = datetime.now(timezone.utc)
+            end_date_time = end_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
+
+        print("""
+        "time":"%s %s","resolution":"%s"
+        """ % (start_date_time, end_date_time, resolution_phrase.get(self.time_range)))
+        # TODO: need 2 digit numbers
         return """
-        "time":"2019-07-23 2020-07-23",
-        "resolution":"WEEK"
-        """
+        "time":"%s %s","resolution":"%s"
+        """ % (start_date_time, end_date_time, resolution_phrase.get(self.time_range))
+
+        #return """
+        #"time":"2019-07-23 2020-07-23","resolution":"WEEK"
+        #"""  # % (start_date_time, end_date_time, resolution_phrase.get(self.time_range))
 
     def generate_csv_query_request_locale(self):
         return """
@@ -155,8 +182,12 @@ class TrendsFetcher:
         return comparison_item
 
     def generate_csv_query_request_request_options(self):
-        return """\"requestOptions":{"property":"","backend":"IZG","category":0}"""
+        if self.time_range == "12M":
+            return """\"requestOptions":{"property":"","backend":"IZG","category":0}"""
+        else:
+            return """\"requestOptions":{"property":"","backend":"CM","category":0}"""
 
+    # TODO: put context back in here, only values should be returned by functions for uniformity and clarity
     def generate_csv_query_request(self):
         csv_query_request = "{%s,%s,%s,%s}" % (self.generate_csv_query_request_time()
         , self.generate_csv_query_request_locale()
@@ -172,7 +203,7 @@ class TrendsFetcher:
         requestCurl.setopt(pycurl.URL, csv_address + csv_query)
         requestCurl.setopt(pycurl.HTTPHEADER, self.default_csv_header)
 
-        # If no save file is given, put the data into member trends_data DataFrame
+        # If no save file is given, put the data into self.trends_data DataFrame and return it
         if save_file == "":
             response_string = requestCurl.perform_rs()
             requestCurl.close()
@@ -180,8 +211,8 @@ class TrendsFetcher:
             response_string = re.sub(".*?\n\n", "", response_string)
             # Produce StringIO object from response, put into DataFrame and return
             response_IO_string = io.StringIO(response_string)
-            response_DF = pandas.read_csv(response_IO_string, sep=",")
-            return response_DF
+            self.trends_data = pandas.read_csv(response_IO_string, sep=",")
+            return self.trends_data
         else:
             pass
             file = open(save_file, "wb")
@@ -189,10 +220,19 @@ class TrendsFetcher:
             requestCurl.perform()
             requestCurl.close()
 
-
-    def scrape_trend(self, keywords, geo = ""):
+    # Primary member function. Takes up to 5 keywords as a list in (keywords)
+    # and optional arguments: country code as a string in [geo], time range
+    # as a string in [time_range], country to take timezone of in [timezone]
+    # OR if timezone_override == True takes timezone of form (+/-)(hours) in
+    # timezone. If timezone_override == False, timezone is calculated
+    # automatically from the country, including daylight savings.
+    # Defaults to worldwide trend over the past 12 months, with UTC timezone:
+    # +0
+    # 12M = 12 months
+    def scrape_trend(self, keywords, geo = "", time_range = "12M", timezone = ""):
         self.keywords = keywords
         self.geo = geo
+        self.time_range = time_range
 
         self.get_token()
         self.trends_data = self.get_csv()
