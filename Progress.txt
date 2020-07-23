@@ -22,10 +22,13 @@ Mark any items from the list DONE and leave them at that day
 22072020
 * Refactored
 Planned Core
-* Accept arbitrary geographical location STARTED
+* Accept arbitrary geographical location code DONE
+* Accept multiple keywords DONE
+
+23072020
 * Automatically substitute valid date range
 * Accept any time range allowed by google trends
-* Accept multiple keywords
+
 Planned Addon
 * Get absolute volumes
 * Trends autocomplete request to give topic(etc) codes required by token/csv requests
