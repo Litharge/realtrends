@@ -47,8 +47,10 @@ class TrendsFetcher:
         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language: en-GB,en;q=0.5",
         "Connection: keep-alive",
-        "Referer: https://trends.google.com/trends/explore?q=snow&geo=US",#note that this has a chance of being important, servers can block requests
-        #without proper referer data. A member variable should be set to an initial value and updated each time keyword is changed. TODO
+        "Referer: https://trends.google.com/trends/explore?q=snow&geo=US",
+        # note that this has a chance of being important, servers can block requests
+        # without proper referer data. A member variable should be set to an initial
+        # value and updated each time keyword is changed.
         "Upgrade-Insecure-Requests: 1",
         "TE: Trailers"
     ]
@@ -139,7 +141,7 @@ class TrendsFetcher:
             start_date_time = start_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
             end_date_time = datetime.now(timezone.utc)
             end_date_time = end_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
-        elif resolution.get(self.time_range) in {"DAY", "WEEK"}:
+        else:
             # Use number from time_range to give delta
             if self.time_range[-1] == "m":
                 start_date_time = datetime.now(timezone.utc) \
@@ -153,7 +155,7 @@ class TrendsFetcher:
         return """
         "time":"%s %s",
         "resolution":"%s"
-        """ % (start_date_time, end_date_time, resolution_phrase.get(self.time_range))
+        """ % (start_date_time, end_date_time, resolution.get(self.time_range))
 
 
     def generate_csv_query_request_locale(self):
@@ -229,7 +231,6 @@ class TrendsFetcher:
             self.trends_data = pandas.read_csv(response_IO_string, sep=",")
             return self.trends_data
         else:
-            pass
             file = open(save_file, "wb")
             requestCurl.setopt(pycurl.WRITEDATA, file)
             requestCurl.perform()
@@ -243,7 +244,8 @@ class TrendsFetcher:
     # automatically from the country, including daylight savings.
     # Defaults to worldwide trend over the past 12 months, with UTC timezone:
     # +0
-    # 12-m = 12 months
+    # 1-H = past hour, 4-h = past 4 hours, 1-d = past day, 5-d = past 5 days
+    # 1-m = past month, 3-m = past 3 months, 12-m = 12 months
     def scrape_trend(self, keywords, geo = "", time_range = "12-m", timezone = ""):
         self.keywords = keywords
         self.geo = geo
