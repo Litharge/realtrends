@@ -1,12 +1,12 @@
 import io
 import re
 import urllib.parse
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
-from dateutil.relativedelta import relativedelta
 import pandas
 import pycurl
-import pycountry
+from dateutil.relativedelta import relativedelta
+
 
 # "hl" = "host language", "tz" = "timezone"
 # For an explanation of structure see CurlRequestPatternsAndNotes, particularly the 22072020 examples
@@ -18,6 +18,7 @@ class TrendsFetcher:
     keywords = []
     geo = ""
     time_range = ""
+    tz = ""
     trends_data = ""
 
     # Temporary headers taken from firefox on my machine
@@ -37,8 +38,7 @@ class TrendsFetcher:
         "Connection: keep-alive",
         "Referer: https://trends.google.com/trends/explore?q=snow&geo=US",
         # note that referer has a chance of being important, servers can block requests
-        # without proper referer data. A member variable should be set to an initial
-        # value and updated each time keyword is changed. TODO
+        # without proper referer data.
         "TE: Trailers"
     ]
 
@@ -56,21 +56,22 @@ class TrendsFetcher:
     ]
 
     # Fetch a cookie, this is needed to fetch a token
-    def getCookie(self):
-        cookieCurl = pycurl.Curl()
+    def get_cookie(self):
+        cookie_curl = pycurl.Curl()
 
-        cookieCurl.setopt(pycurl.URL, 'https://trends.google.com/trends/explore?geo=US&q=snow')
-        cookieCurl.setopt(pycurl.HTTPHEADER, self.default_cookie_header)
+        cookie_curl.setopt(pycurl.URL,
+                           'https://trends.google.com/trends/explore?geo=US&q=snow')
+        cookie_curl.setopt(pycurl.HTTPHEADER, self.default_cookie_header)
 
-        byteData = io.BytesIO()
-        cookieCurl.setopt(pycurl.WRITEHEADER, byteData)
+        byte_data = io.BytesIO()
+        cookie_curl.setopt(pycurl.WRITEHEADER, byte_data)
 
-        cookieCurl.perform_rb()
-        cookieCurl.close()
+        cookie_curl.perform_rb()
+        cookie_curl.close()
         # convert header into a string and perform regex to extract cookie
-        headerStr = byteData.getvalue().decode("utf8")
+        header = byte_data.getvalue().decode("utf8")
 
-        match_obj = re.search(r"Set-Cookie:.*?;", headerStr)
+        match_obj = re.search(r"Set-Cookie:.*?;", header)
         match_obj = re.search(r"NID.*?;", match_obj.group(0))
 
         self.cookie = match_obj.group(0)
@@ -98,14 +99,15 @@ class TrendsFetcher:
         return comparison_item
 
     def generate_token_query_request(self):
-        token_query_request = self.generate_token_query_request_comparisonItem() + """\"category":0,""" + """\"property":"\""""
+        token_query_request = \
+            self.generate_token_query_request_comparisonItem() + """\"category":0,"property":"\""""
         token_query_request = "{" + token_query_request + "}"
         return token_query_request
     # Fetch a token for a google trends query, this is needed to get csv data on the query
     def get_token(self):
         token_curl = pycurl.Curl()
         token_address = "https://trends.google.com/trends/api/explore?"
-        token_query = urllib.parse.urlencode({"hl":"en-US", "tz":"60", "req":self.generate_token_query_request()})
+        token_query = urllib.parse.urlencode({"hl":"en-US", "tz":self.tz, "req":self.generate_token_query_request()})
 
         token_URL = token_address + token_query
         # set URL to request from, hard coded for now
@@ -186,35 +188,29 @@ class TrendsFetcher:
                 }
             },
             """ % (self.generate_csv_query_request_comparison_item_list_geo(), kw)
-        # Return the list except the last character, which is an unneeded comma
-        return comparison_item_list[:-1]
-
-    def generate_csv_query_request_comparison_item(self):
-        comparison_item = """
-        "comparisonItem":[
-        """
-        comparison_item += self.generate_csv_query_request_comparison_item_list()
-        comparison_item += "]"
-        return comparison_item
+        # Return crotchet enclosed list except the last character, an unneeded comma
+        return "[" + comparison_item_list[:-1] + "]"
 
     def generate_csv_query_request_request_options(self):
         backends = {"1-H":"CM","4-H":"CM","1-d":"CM",
                     "7-d":"CM","1-m":"IZG","3-m":"IZG",
                     "12-m":"IZG","5-y":"IZG"}
         select_backend = backends.get(self.time_range)
-        return """\"requestOptions":{"property":"","backend":"%s","category":0}""" % select_backend
+        return """{"property":"","backend":"%s","category":0}""" % select_backend
 
     # TODO: put context back in here, only values should be returned by functions for uniformity and clarity
     def generate_csv_query_request(self):
-        csv_query_request = "{%s,%s,%s,%s}" % (self.generate_csv_query_request_time()
+        csv_query_request = """
+        {%s,%s,"comparisonItem":%s,\"requestOptions":%s}
+        """ % (self.generate_csv_query_request_time()
         , self.generate_csv_query_request_locale()
-        , self.generate_csv_query_request_comparison_item()
+        , self.generate_csv_query_request_comparison_item_list()
         , self.generate_csv_query_request_request_options())
         return csv_query_request
 
     def get_csv(self, save_file = ""):
         csv_address = """https://trends.google.com/trends/api/widgetdata/multiline/csv?"""
-        csv_query = urllib.parse.urlencode({"req":self.generate_csv_query_request(), "token":self.token, "tz":"-60"})
+        csv_query = urllib.parse.urlencode({"req":self.generate_csv_query_request(), "token":self.token, "tz":self.tz})
 
         requestCurl = pycurl.Curl()
         requestCurl.setopt(pycurl.URL, csv_address + csv_query)
@@ -246,10 +242,11 @@ class TrendsFetcher:
     # +0
     # 1-H = past hour, 4-h = past 4 hours, 1-d = past day, 5-d = past 5 days
     # 1-m = past month, 3-m = past 3 months, 12-m = 12 months
-    def scrape_trend(self, keywords, geo = "", time_range = "12-m", timezone = ""):
+    def scrape_trend(self, keywords, geo = "", time_range = "12-m", tz = "0"):
         self.keywords = keywords
         self.geo = geo
         self.time_range = time_range
+        self.tz = tz
 
         self.get_token()
         self.trends_data = self.get_csv()
@@ -257,5 +254,5 @@ class TrendsFetcher:
         return self.trends_data
 
     def __init__(self):
-        self.getCookie()
+        self.get_cookie()
         self.default_token_header.append("Cookie: " + self.cookie)

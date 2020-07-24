@@ -1,16 +1,13 @@
 from realtrends import TrendsFetcher
-
+import time
 import pandas
 
 test_fetcher = TrendsFetcher()
 
 with pandas.option_context("display.max_rows", None, "display.max_columns", None):
-    test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo = "US", time_range = "1-H", timezone = "")
-    test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo="US", time_range="1-d", timezone="")
-    test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo="US", time_range="7-d", timezone="")
-    test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo="", time_range="1-m", timezone="")
-    test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo="", time_range="3-m", timezone="")
-    test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo="", time_range="12-m", timezone="")
+    for tr in ["1-H","4-H","1-d","7-d","1-m","3-m","12-m"]:
+        time.sleep(1)
+        test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo ="", time_range = tr, tz = "-60")
 
 
 

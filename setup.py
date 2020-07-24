@@ -11,6 +11,7 @@ setup(name='realtrends',
       license = 'MIT',
       packages = ['realtrends'],
       install_requires = [
+            'python-dateutil',
             'pandas',
             'pycurl'
       ],
