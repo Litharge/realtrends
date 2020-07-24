@@ -433,17 +433,120 @@ req={
 }&
 token=APP6_UEAAAAAXxm3jU0ZTUgZIrlxGbeVxgVcP7KKBY2u&tz=-60'
 
-23072020 token query request comparisonItem list time
-and csv query request time examples
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+23072020,24072020
+* token query request comparisonItem list time
+* csv query request time
+examples
 
 ----------------------------
 keyword = weather "search term"
 location = US
-time = past 1 hour
+time = "past 1 hour"
 made 18:54:23
 
 TOKEN
 "time":"now 1-H"
 
 CSV
-"time":"2020-07-23T16\\:54\\:23 2020-07-23T17\\:54\\:23","resolution":"MINUTE"
+"time":"2020-07-23T16\\:54\\:23 2020-07-23T17\\:54\\:23",
+"resolution":"MINUTE"
+"backend":"CM"
+
+----------------------------
+keyword = weather "search term"
+location = US
+time = "past 4 hours"
+
+TOKEN
+"time":"now 4-H"
+
+CSV
+"time":"2020-07-24T11\\:50\\:46 2020-07-24T15\\:50\\:46",
+"resolution":"MINUTE"
+"backend":"CM"
+
+----------------------------
+keyword = snow "search term"
+location = US
+time = "past day"
+made 15:43:42
+
+TOKEN
+"time":"now 1-d"
+
+CSV
+"time":"2020-07-23T14\\:43\\:42 2020-07-24T14\\:43\\:42",
+"resolution":"EIGHT_MINUTE"
+"backend":"CM"
+
+----------------------------
+keyword = snow "search term"
+location = US
+time = "past 7 days"
+made 15:46:32
+
+TOKEN
+"time":"now 7-d"
+
+CSV
+"time":"2020-07-17T14\\:46\\:32 2020-07-24T14\\:46\\:32",
+"resolution":"HOUR"
+"backend":"CM"
+
+----------------------------
+keyword = snow "search term"
+location = US
+time = "past 30 days"
+made 15:46
+
+TOKEN
+"time":"today 1-m"
+
+CSV
+"time":"2020-06-24 2020-07-24",
+"resolution":"DAY"
+"backend":"IZG"
+
+----------------------------
+keyword = snow "search term"
+location = US
+time = "past 90 days"
+made 15:51
+
+TOKEN
+"time":"today 3-m"
+
+CSV
+"time":"2020-04-24 2020-07-24",
+"resolution":"DAY"
+"backend":"IZG"
+
+----------------------------
+keyword = snow "search term"
+location = US
+time = "past 12 months"
+made 15:54
+
+TOKEN
+"time":"today 12-m"
+
+CSV
+"time":"2019-07-24 2020-07-24",
+"resolution":"WEEK"
+"backend":"IZG"
+
+----------------------------
+keyword = snow "search term"
+location = US
+time = "past 5 years"
+made 15:54
+
+TOKEN
+"time":"today 5-y"
+
+CSV
+"time":"2015-07-24 2020-07-24",
+"resolution":"WEEK"
+"backend":"IZG"

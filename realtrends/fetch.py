@@ -73,9 +73,12 @@ class TrendsFetcher:
 
         self.cookie = match_obj.group(0)
 
-
     def generate_token_query_request_comparison_item_list(self):
-        time_phrase = {"1H": "now 1-H", "12M": "today 12-m"}
+        time_phrase = {
+            "1-H": "now 1-H", "4-H": "now 4-H", "1-d": "now 1-d",
+            "7-d": "now 7-d", "1-m": "today 1-m", "3-m": "today 3-m",
+            "12-m": "today 12-m", "5-y": "today 1-y",
+        }
         token_time = time_phrase.get(self.time_range)
         comparison_item_list = ""
         for kw in self.keywords:
@@ -109,7 +112,6 @@ class TrendsFetcher:
         # get body as string
         response = token_curl.perform_rs()
         token_curl.close()
-        #
         # search for first token in response
         token_match_obj = re.search(r"\"token\":.*?,", response)
         # remove starting "token":"
@@ -119,28 +121,40 @@ class TrendsFetcher:
 
 
     def generate_csv_query_request_time(self):
-        resolution_phrase = {"12M":"WEEK","1H":"MINUTE"}
-        if self.time_range == "12M":
-            start_date_time = datetime.now(timezone.utc) - relativedelta(years = 1)
-            start_date_time = start_date_time.strftime("%Y-%m-%d")
-            end_date_time = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        elif self.time_range == "1H":
-            start_date_time = datetime.now(timezone.utc) - relativedelta(hours = 1)
+        resolution = {
+            "1-H": "MINUTE", "4-H": "MINUTE", "1-d": "EIGHT_MINUTE",
+            "7-d": "HOUR", "1-m": "DAY", "3-m": "DAY",
+            "12-m": "WEEK", "5-y": "WEEK"
+        }
+        # For high resolutions, hours, minutes and seconds must be passed in the query
+        if resolution.get(self.time_range) in {"MINUTE", "EIGHT_MINUTE", "HOUR"}:
+            # Use number from time_range to give delta
+            if self.time_range[-1] == "H":
+                start_date_time = datetime.now(timezone.utc) \
+                                  - relativedelta(hours=int(self.time_range[:self.time_range.index("-")]))
+            if self.time_range[-1] == "d":
+                start_date_time = datetime.now(timezone.utc) \
+                                  - relativedelta(days=int(self.time_range[:self.time_range.index("-")]))
+
             start_date_time = start_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
             end_date_time = datetime.now(timezone.utc)
             end_date_time = end_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
+        elif resolution.get(self.time_range) in {"DAY", "WEEK"}:
+            # Use number from time_range to give delta
+            if self.time_range[-1] == "m":
+                start_date_time = datetime.now(timezone.utc) \
+                                  - relativedelta(months=int(self.time_range[:self.time_range.index("-")]))
+            if self.time_range[-1] == "y":
+                start_date_time = datetime.now(timezone.utc) - relativedelta(years=5)
 
-        print("""
-        "time":"%s %s","resolution":"%s"
-        """ % (start_date_time, end_date_time, resolution_phrase.get(self.time_range)))
-        # TODO: need 2 digit numbers
+            start_date_time = start_date_time.strftime("%Y-%m-%d")
+            end_date_time = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
         return """
-        "time":"%s %s","resolution":"%s"
+        "time":"%s %s",
+        "resolution":"%s"
         """ % (start_date_time, end_date_time, resolution_phrase.get(self.time_range))
 
-        #return """
-        #"time":"2019-07-23 2020-07-23","resolution":"WEEK"
-        #"""  # % (start_date_time, end_date_time, resolution_phrase.get(self.time_range))
 
     def generate_csv_query_request_locale(self):
         return """
@@ -182,10 +196,11 @@ class TrendsFetcher:
         return comparison_item
 
     def generate_csv_query_request_request_options(self):
-        if self.time_range == "12M":
-            return """\"requestOptions":{"property":"","backend":"IZG","category":0}"""
-        else:
-            return """\"requestOptions":{"property":"","backend":"CM","category":0}"""
+        backends = {"1-H":"CM","4-H":"CM","1-d":"CM",
+                    "7-d":"CM","1-m":"IZG","3-m":"IZG",
+                    "12-m":"IZG","5-y":"IZG"}
+        select_backend = backends.get(self.time_range)
+        return """\"requestOptions":{"property":"","backend":"%s","category":0}""" % select_backend
 
     # TODO: put context back in here, only values should be returned by functions for uniformity and clarity
     def generate_csv_query_request(self):
@@ -228,8 +243,8 @@ class TrendsFetcher:
     # automatically from the country, including daylight savings.
     # Defaults to worldwide trend over the past 12 months, with UTC timezone:
     # +0
-    # 12M = 12 months
-    def scrape_trend(self, keywords, geo = "", time_range = "12M", timezone = ""):
+    # 12-m = 12 months
+    def scrape_trend(self, keywords, geo = "", time_range = "12-m", timezone = ""):
         self.keywords = keywords
         self.geo = geo
         self.time_range = time_range
