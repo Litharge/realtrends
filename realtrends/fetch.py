@@ -2,6 +2,7 @@ import io
 import re
 import urllib.parse
 from datetime import datetime, timezone
+import time
 
 import pandas
 import pycurl
@@ -19,6 +20,8 @@ class TrendsFetcher:
 
     __cookie = ""
     __token = ""
+
+    __token_no = 1
 
     trends_data = ""
 
@@ -103,7 +106,9 @@ class TrendsFetcher:
     def __get_token(self):
         token_curl = pycurl.Curl()
         token_address = "https://trends.google.com/trends/api/explore?"
-        token_query = urllib.parse.urlencode({"hl":"en-US", "tz":self.__tz, "req":self.__generate_token_query_request()})
+        token_query = urllib.parse.urlencode(
+            {"hl":"en-US", "tz":self.__tz,
+             "req":self.__generate_token_query_request()})
 
         token_URL = token_address + token_query
         # set URL to request from, hard coded for now
@@ -112,12 +117,9 @@ class TrendsFetcher:
         # get body as string
         response = token_curl.perform_rs()
         token_curl.close()
-        # search for first token in response
-        token_match_obj = re.search(r"\"token\":.*?,", response)
-        # remove starting "token":"
-        self.__token = re.sub(r"\"token\":.*?\"", '', token_match_obj.group(0))
-        # remove trailing ",
-        self.__token = re.sub(r"\",", '', self.__token)
+        # use first token in response
+        self.__token = response.split("\"token\":\"")[1]
+        self.__token = self.__token.split("\",")[0]
 
 
     def __generate_csv_query_request_time(self):
@@ -126,15 +128,18 @@ class TrendsFetcher:
             "7-d": "HOUR", "1-m": "DAY", "3-m": "DAY",
             "12-m": "WEEK", "5-y": "WEEK"
         }
-        # For high resolutions, hours, minutes and seconds must be passed in the query
+        # For high resolutions, hours, minutes and seconds must be in the
+        # query string as: "%Y-%m-%dT%H\\\\:%M\\\\:%S"
         if resolution.get(self.__time_range) in {"MINUTE", "EIGHT_MINUTE", "HOUR"}:
             # Use number from time_range to give delta
             if self.__time_range[-1] == "H":
-                start_date_time = datetime.now(timezone.utc) \
-                                  - relativedelta(hours=int(self.__time_range[:self.__time_range.index("-")]))
+                start_date_time = \
+                    datetime.now(timezone.utc) \
+                    - relativedelta(hours=int(self.__time_range[:self.__time_range.index("-")]))
             if self.__time_range[-1] == "d":
-                start_date_time = datetime.now(timezone.utc) \
-                                  - relativedelta(days=int(self.__time_range[:self.__time_range.index("-")]))
+                start_date_time = \
+                    datetime.now(timezone.utc) \
+                    - relativedelta(days=int(self.__time_range[:self.__time_range.index("-")]))
 
             start_date_time = start_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
             end_date_time = datetime.now(timezone.utc)
@@ -142,8 +147,9 @@ class TrendsFetcher:
         else:
             # Use number from time_range to give delta
             if self.__time_range[-1] == "m":
-                start_date_time = datetime.now(timezone.utc) \
-                                  - relativedelta(months=int(self.__time_range[:self.__time_range.index("-")]))
+                start_date_time = \
+                    datetime.now(timezone.utc) \
+                    - relativedelta(months=int(self.__time_range[:self.__time_range.index("-")]))
             if self.__time_range[-1] == "y":
                 start_date_time = datetime.now(timezone.utc) - relativedelta(years=5)
 
@@ -178,8 +184,8 @@ class TrendsFetcher:
                 }
             },
             """ % (self.__generate_csv_query_request_comparison_item_list_geo(), kw)
-        # Return crotchet enclosed list except the last character, an unneeded comma
-        return "[" + comparison_item_list[:-1] + "]"
+        # Last character is unneeded comma:
+        return "[%s]" % comparison_item_list[:-1]
 
     def __generate_csv_query_request_request_options(self):
         backends = {"1-H":"CM","4-H":"CM","1-d":"CM",
@@ -193,14 +199,15 @@ class TrendsFetcher:
         csv_query_request = """
         {%s,"locale":"en-US","comparisonItem":%s,\"requestOptions":%s}
         """ % (self.__generate_csv_query_request_time()
-        #, self.__generate_csv_query_request_locale()
         , self.__generate_csv_query_request_comparison_item_list()
         , self.__generate_csv_query_request_request_options())
         return csv_query_request
 
     def __get_csv(self, save_file = ""):
         csv_address = """https://trends.google.com/trends/api/widgetdata/multiline/csv?"""
-        csv_query = urllib.parse.urlencode({"req":self.__generate_csv_query_request(), "token":self.__token, "tz":self.__tz})
+        csv_query = urllib.parse.urlencode(
+            {"req":self.__generate_csv_query_request(),
+             "token":self.__token, "tz":self.__tz})
 
         requestCurl = pycurl.Curl()
         requestCurl.setopt(pycurl.URL, csv_address + csv_query)
@@ -232,15 +239,20 @@ class TrendsFetcher:
     # +0
     # 1-H = past hour, 4-h = past 4 hours, 1-d = past day, 5-d = past 5 days
     # 1-m = past month, 3-m = past 3 months, 12-m = 12 months
-    def scrape_trend(self, keywords, geo = "", time_range = "12-m", tz = "0"):
+    def scrape_trend(self, keywords, geo = "", time_range = "12-m", tz = "0", retry = True, token_no = 1):
         self.__keywords = keywords
         self.__geo = geo
         self.__time_range = time_range
         self.__tz = tz
 
+        self.__token_no = token_no
+
         self.__get_token()
+        # TODO a pause here makes an error more likely
+        # indicates a speedup is needed, remove regex where possible
         self.trends_data = self.__get_csv()
-        print(self.trends_data)
+
+
         return self.trends_data
 
     def __init__(self):
