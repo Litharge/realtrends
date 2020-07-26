@@ -23,7 +23,8 @@ class TrendsFetcher:
 
     __token_no = 1
 
-    trends_data = ""
+    trends_data = pandas.DataFrame
+    __trends_data_buffer = pandas.DataFrame
 
     # Temporary headers taken from firefox on my machine
     __default_cookie_header = [
@@ -67,13 +68,13 @@ class TrendsFetcher:
 
         cookie_curl.perform_rb()
         cookie_curl.close()
-        # convert header into a string and perform regex to extract cookie
+        # convert header into a string and extract cookie
         header = byte_data.getvalue().decode("utf8")
 
-        match_obj = re.search(r"Set-Cookie:.*?;", header)
-        match_obj = re.search(r"NID.*?;", match_obj.group(0))
+        cookie = header.split("Set-Cookie:")[1]
+        cookie = cookie.split(";")[0] + ";"
 
-        self.__cookie = match_obj.group(0)
+        self.__cookie = cookie
 
     def __generate_token_query_request_comparison_item_list(self):
         time_phrase = {
@@ -136,7 +137,7 @@ class TrendsFetcher:
                 start_date_time = \
                     datetime.now(timezone.utc) \
                     - relativedelta(hours=int(self.__time_range[:self.__time_range.index("-")]))
-            if self.__time_range[-1] == "d":
+            elif self.__time_range[-1] == "d":
                 start_date_time = \
                     datetime.now(timezone.utc) \
                     - relativedelta(days=int(self.__time_range[:self.__time_range.index("-")]))
@@ -150,7 +151,7 @@ class TrendsFetcher:
                 start_date_time = \
                     datetime.now(timezone.utc) \
                     - relativedelta(months=int(self.__time_range[:self.__time_range.index("-")]))
-            if self.__time_range[-1] == "y":
+            elif self.__time_range[-1] == "y":
                 start_date_time = datetime.now(timezone.utc) - relativedelta(years=5)
 
             start_date_time = start_date_time.strftime("%Y-%m-%d")
@@ -161,7 +162,6 @@ class TrendsFetcher:
         "resolution":"%s"
         """ % (start_date_time, end_date_time, resolution.get(self.__time_range))
 
-    # use pycountry to translate country to country code
     def __generate_csv_query_request_comparison_item_list_geo(self):
         if self.__geo != "":
             return """\"country":"%s\"""" % self.__geo
@@ -184,50 +184,42 @@ class TrendsFetcher:
                 }
             },
             """ % (self.__generate_csv_query_request_comparison_item_list_geo(), kw)
-        # Last character is unneeded comma:
+        # Last character is unneeded comma
         return "[%s]" % comparison_item_list[:-1]
 
     def __generate_csv_query_request_request_options(self):
-        backends = {"1-H":"CM","4-H":"CM","1-d":"CM",
-                    "7-d":"CM","1-m":"IZG","3-m":"IZG",
-                    "12-m":"IZG","5-y":"IZG"}
+        backends = {"1-H": "CM","4-H": "CM","1-d": "CM",
+                    "7-d": "CM","1-m": "IZG","3-m": "IZG",
+                    "12-m": "IZG","5-y": "IZG"}
         select_backend = backends.get(self.__time_range)
         return """{"property":"","backend":"%s","category":0}""" % select_backend
 
-    # TODO: put context back in here, only values should be returned by functions for uniformity and clarity
     def __generate_csv_query_request(self):
         csv_query_request = """
         {%s,"locale":"en-US","comparisonItem":%s,\"requestOptions":%s}
-        """ % (self.__generate_csv_query_request_time()
-        , self.__generate_csv_query_request_comparison_item_list()
-        , self.__generate_csv_query_request_request_options())
+        """ % (self.__generate_csv_query_request_time(),
+               self.__generate_csv_query_request_comparison_item_list(),
+               self.__generate_csv_query_request_request_options())
         return csv_query_request
 
-    def __get_csv(self, save_file = ""):
+    def __get_csv(self, save_file=""):
         csv_address = """https://trends.google.com/trends/api/widgetdata/multiline/csv?"""
         csv_query = urllib.parse.urlencode(
-            {"req":self.__generate_csv_query_request(),
-             "token":self.__token, "tz":self.__tz})
+            {"req": self.__generate_csv_query_request(),
+             "token": self.__token, "tz": self.__tz})
 
-        requestCurl = pycurl.Curl()
-        requestCurl.setopt(pycurl.URL, csv_address + csv_query)
-        requestCurl.setopt(pycurl.HTTPHEADER, self.__default_csv_header)
+        request_curl = pycurl.Curl()
+        request_curl.setopt(pycurl.URL, csv_address + csv_query)
+        request_curl.setopt(pycurl.HTTPHEADER, self.__default_csv_header)
 
-        # If no save file is given, put the data into self.trends_data DataFrame and return it
-        if save_file == "":
-            response_string = requestCurl.perform_rs()
-            requestCurl.close()
-            # Delete top two lines of response, ready for conversion to DataFrame
-            response_string = re.sub(".*?\n\n", "", response_string)
-            # Produce StringIO object from response, put into DataFrame and return
-            response_IO_string = io.StringIO(response_string)
-            self.trends_data = pandas.read_csv(response_IO_string, sep=",")
-            return self.trends_data
-        else:
-            file = open(save_file, "wb")
-            requestCurl.setopt(pycurl.WRITEDATA, file)
-            requestCurl.perform()
-            requestCurl.close()
+        response_string = request_curl.perform_rs()
+        request_curl.close()
+        # Delete top two lines of response, ready for conversion to DataFrame
+        response_string = re.sub(".*?\n\n", "", response_string)
+        # Put response into buffer DataFrame
+        response_io_string = io.StringIO(response_string)
+        self.__trends_data_buffer = pandas.read_csv(response_io_string, sep=",")
+
 
     # Primary member function. Takes up to 5 keywords as a list in (keywords)
     # and optional arguments: country code as a string in [geo], time range
@@ -239,19 +231,40 @@ class TrendsFetcher:
     # +0
     # 1-H = past hour, 4-h = past 4 hours, 1-d = past day, 5-d = past 5 days
     # 1-m = past month, 3-m = past 3 months, 12-m = 12 months
-    def scrape_trend(self, keywords, geo = "", time_range = "12-m", tz = "0", retry = True, token_no = 1):
+
+    def scrape_trend(
+            self, keywords, geo="", time_range = "12-m",
+            tz="0", save_file="", retry=True):
         self.__keywords = keywords
         self.__geo = geo
         self.__time_range = time_range
         self.__tz = tz
 
-        self.__token_no = token_no
-
         self.__get_token()
-        # TODO a pause here makes an error more likely
-        # indicates a speedup is needed, remove regex where possible
-        self.trends_data = self.__get_csv()
 
+        fetch_fail = True
+        retry_csv = 0
+        retry_token = 0
+
+        while fetch_fail:
+            self.__get_csv()
+            if retry == False:
+                break
+            if self.__trends_data_buffer.empty:
+                fetch_fail = True
+            else:
+                fetch_fail = False
+            if retry_csv >= 1:
+                retry_csv = -1
+                retry_token += 1
+                # print("get_token retry %s" % retry_token)
+                self.__get_token()
+            retry_csv += 1
+            # print("get_csv retry %s" % retry_csv)
+        self.trends_data = self.__trends_data_buffer.copy()
+
+        if save_file != "":
+            self.trends_data.to_csv(save_file)
 
         return self.trends_data
 
