@@ -1,5 +1,3 @@
-All examples will be using keyword snow, location US
-
 ~~Cookie request~~
 The first step, no token or cookie is needed for the cookie request
 To get the requried curl:
