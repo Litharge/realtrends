@@ -1,13 +1,13 @@
-#realtrends
+# realtrends
 A package to scrape google trends for relative (v1) and absolute (v2) search
 volumes of given terms. Data is put into a DataFrame.
 
-##Install
+## Install
 ```
 pip install realtrends
 ```
 
-##Example
+## Example
 get relative search popularities for "sunhats" vs "snow" amongst US searchers 
 over the past day, where the user's time zone is central = UTC-0600 = -360 in 
 minutes. Print the result.
@@ -18,9 +18,9 @@ my_test_fetcher.scrape_trend(["sunhats","snow"], geo="US", time_range="1-d", tz=
 print(my_test_fetcher.trends_data)
 ```
 
-##Usage
+## Usage
 
-###fetch Module
+### *fetch* Module
 
 ```
 def scrape_trend(
@@ -33,11 +33,11 @@ trends_data
 ```
 member DataFrame
 
-####Parameters:
+#### Parameters:
 keywords : list 
 Up to 5 search terms to compare
 
-####Keyword (Named) Parameters
+#### Keyword (Named) Parameters
 geo : string 
 A country code. eg "GB" for Great Britain. By default empty,
 indicating global trends
@@ -63,15 +63,15 @@ retry : boolean
 Decide whether to automatically retry if the server fails
 to send CSV data. Default is True
 
-##Features
-v1.0.0 (current) 
+## Features
+v1.0 (current) 
 Scrape trends directly from google trends:
 * Supports up to 5 search terms
 * Any country code may be used
 * Optional save file
 * Optional automatic retry if request fails
 
-##Planned Features
+## Planned Features
 Get absolute search volumes (hence realtrends)
 Persistently store search volumes (needs absolute volume to be feasible)
 

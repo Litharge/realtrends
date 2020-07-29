@@ -8,10 +8,6 @@ import pandas
 import pycurl
 from dateutil.relativedelta import relativedelta
 
-
-# "hl" = "host language", "tz" = "timezone"
-# For an explanation of structure see CurlRequestPatternsAndNotes, particularly the 22072020 examples
-
 class TrendsFetcher:
     __keywords = []
     __geo = ""
