@@ -78,7 +78,7 @@ class TrendsFetcher:
         time_phrase = {
             "1-H": "now 1-H", "4-H": "now 4-H", "1-d": "now 1-d",
             "7-d": "now 7-d", "1-m": "today 1-m", "3-m": "today 3-m",
-            "12-m": "today 12-m", "5-y": "today 1-y",
+            "12-m": "today 12-m", "5-y": "today 5-y",
         }
         token_time = time_phrase.get(self.__time_range)
         comparison_item_list = ""
@@ -189,10 +189,8 @@ class TrendsFetcher:
                self.__generate_csv_query_request_request_options())
         return csv_query_request
 
-    def __get_csv(self, save_file=""):
-        csv_address = """
-        https://trends.google.com/trends/api/widgetdata/multiline/csv?
-        """
+    def __get_csv(self):
+        csv_address = """https://trends.google.com/trends/api/widgetdata/multiline/csv?"""
         csv_query = urllib.parse.urlencode(
             {"req": self.__generate_csv_query_request(),
              "token": self.__token, "tz": self.__tz})
@@ -223,6 +221,7 @@ class TrendsFetcher:
         retry_csv = 0
         retry_token = 0
 
+        # First retry fetching CSV, if this fails again, retry fetching token
         while fetch_fail:
             self.__get_csv()
             if retry == False:
@@ -238,6 +237,7 @@ class TrendsFetcher:
                 self.__get_token()
             retry_csv += 1
             # print("get_csv retry %s" % retry_csv)
+
         self.trends_data = self.__trends_data_buffer.copy()
 
         if save_file != "":
