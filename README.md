@@ -34,15 +34,15 @@ trends_data
 member DataFrame
 
 #### Parameters
-keywords : list \ 
+**keywords : list** \
 Up to 5 search terms to compare
 
 #### Keyword (Named) Parameters
-geo : string \
+**geo : string** \
 A country code. eg "GB" for Great Britain. By default empty,
 indicating global trends
 
-time\_range : string \
+**time\_range : string** \
 A time range to get trends data across. 
 "1-H" past 60 minutes, 
 "4-H" past 240 minutes, 
@@ -52,14 +52,14 @@ A time range to get trends data across.
 "3-m" past 90 days, 
 "12-m" past 52 weeks
 
-tz : string \
+**tz : string** \
 Timezone relative to UTC in minutes. Default = "0"
 
-save\_file : string \
+**save\_file : string** \
 File to write CSV response to, if empty (default) no
 file is written to
 
-retry : boolean \
+**retry : boolean** \
 Decide whether to automatically retry if the server fails
 to send CSV data. Default is True
 
@@ -72,7 +72,7 @@ Scrape trends directly from google trends:
 * Optional automatic retry if request fails
 
 ## Planned Features
-Get absolute search volumes (hence realtrends)
+Get absolute search volumes (hence realtrends) \
 Persistently store search volumes (needs absolute volume to be feasible)
 
 MIT License
