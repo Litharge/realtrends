@@ -12,4 +12,5 @@
 *.pyc
 
 #pipfile
-Pipfile*
+Pipfile
+Pipfile.lock
