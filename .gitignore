@@ -1,6 +1,5 @@
 # Hidden files except .gitignore
 .*
-
 !.gitignore
 
 # Distribution folder
@@ -11,3 +10,6 @@
 
 # compiled modules
 *.pyc
+
+#pipfile
+Pipfile*
