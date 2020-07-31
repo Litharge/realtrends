@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='realtrends',
-      version = '0.1',
+      version = '1.0',
       description = 'Package to scrape google trends for '
                   'real and relative search volumes. '
                     'Data is returned as a DataFrame.',

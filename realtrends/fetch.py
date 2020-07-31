@@ -2,23 +2,14 @@ import io
 import re
 import urllib.parse
 from datetime import datetime, timezone
-import time
 
 import pandas
 import pycurl
 from dateutil.relativedelta import relativedelta
 
+
 class TrendsFetcher:
-    __keywords = []
-    __geo = ""
-    __time_range = ""
-    __tz = ""
-
     __cookie = ""
-    __token = ""
-
-    trends_data = pandas.DataFrame
-    __trends_data_buffer = pandas.DataFrame
 
     # Temporary headers taken from firefox on my machine
     __default_cookie_header = [
@@ -68,7 +59,7 @@ class TrendsFetcher:
         header = header.split("Set-Cookie:")[1]
         cookie = header.split(";")[0] + ";"
 
-        self.__cookie = cookie
+        TrendsFetcher.__cookie = cookie
 
     def __generate_token_query_request_comparison_item_list(self):
         time_phrase = {
@@ -88,7 +79,7 @@ class TrendsFetcher:
         return comparison_item_list[:-1]
 
     def __generate_token_query_request_comparisonItem(self):
-        comparison_item =  self.__generate_token_query_request_comparison_item_list()
+        comparison_item = self.__generate_token_query_request_comparison_item_list()
         comparison_item = """\"comparisonItem":[""" + comparison_item + """],"""
         return comparison_item
 
@@ -97,16 +88,17 @@ class TrendsFetcher:
             self.__generate_token_query_request_comparisonItem() + """\"category":0,"property":"\""""
         token_query_request = "{" + token_query_request + "}"
         return token_query_request
+
     # Fetch a token for a google trends query, this is needed to get csv data on the query
     def __get_token(self):
         token_curl = pycurl.Curl()
         token_address = "https://trends.google.com/trends/api/explore?"
         token_query = urllib.parse.urlencode(
-            {"hl":"en-US", "tz":self.__tz,
-             "req":self.__generate_token_query_request()})
+            {"hl": "en-US", "tz": self.__tz,
+             "req": self.__generate_token_query_request()})
 
-        token_URL = token_address + token_query
-        token_curl.setopt(pycurl.URL, token_URL)
+        token_url = token_address + token_query
+        token_curl.setopt(pycurl.URL, token_url)
         token_curl.setopt(pycurl.HTTPHEADER, self.__default_token_header)
         # get body as string
         response = token_curl.perform_rs()
@@ -128,10 +120,10 @@ class TrendsFetcher:
         interval_keyword = interval_unit.get(self.__time_range.split("-")[1])
         interval_quantity = int(self.__time_range.split("-")[0])
         start_date_time = \
-                    datetime.now(timezone.utc) \
-                    - relativedelta(
-                        **{interval_keyword: interval_quantity}
-                                    )
+            datetime.now(timezone.utc) \
+            - relativedelta(
+                **{interval_keyword: interval_quantity}
+                            )
 
         if resolution.get(self.__time_range) in {"MINUTE", "EIGHT_MINUTE", "HOUR"}:
             start_date_time = start_date_time.strftime("%Y-%m-%dT%H\\\\:%M\\\\:%S")
@@ -171,9 +163,9 @@ class TrendsFetcher:
         return "[%s]" % comparison_item_list[:-1]
 
     def __generate_csv_query_request_request_options(self):
-        backends = {"1-H": "CM","4-H": "CM","1-d": "CM",
-                    "7-d": "CM","1-m": "IZG","3-m": "IZG",
-                    "12-m": "IZG","5-y": "IZG"}
+        backends = {"1-H": "CM", "4-H": "CM", "1-d": "CM",
+                    "7-d": "CM", "1-m": "IZG", "3-m": "IZG",
+                    "12-m": "IZG", "5-y": "IZG"}
         select_backend = backends.get(self.__time_range)
         return """{"property":"","backend":"%s","category":0}""" % select_backend
 
@@ -204,8 +196,8 @@ class TrendsFetcher:
         self.__trends_data_buffer = pandas.read_csv(response_io_string, sep=",")
 
     def scrape_trend(
-            self, keywords, geo="", time_range = "12-m",
-            tz="0", save_file="", retry=True):
+            self, keywords, geo="", time_range="12-m",
+            tz="0", save_file="", retry=True, simple_indexes=True):
         self.__keywords = keywords
         self.__geo = geo
         self.__time_range = time_range
@@ -242,5 +234,13 @@ class TrendsFetcher:
         return self.trends_data
 
     def __init__(self):
-        self.__get_cookie()
+        self.__keywords = ""
+        self.__geo = ""
+        self.__time_range = ""
+        self.__tz = ""
+
+        self.trends_data = pandas.DataFrame()
+
+        if TrendsFetcher.__cookie == "":
+            self.__get_cookie()
         self.__default_token_header.append("Cookie: " + self.__cookie)
