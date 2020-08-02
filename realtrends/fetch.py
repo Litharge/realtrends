@@ -226,11 +226,13 @@ class TrendsFetcher:
             retry_csv += 1
             # print("get_csv retry %s" % retry_csv)
 
-        self.trends_data = self.__trends_data_buffer.copy()
         if simple_indexes:
-            self.trends_data.rename(columns={self.trends_data.columns[0]: "date_time"}, inplace=True)
-            for n in self.trends_data.columns:
-                self.trends_data.rename(columns={n: n.split(":")[0]}, inplace=True)
+            self.__trends_data_buffer.rename(columns={self.__trends_data_buffer.columns[0]: "date_time"}, inplace=True)
+            for n in self.__trends_data_buffer.columns:
+                self.__trends_data_buffer.rename(columns={n: n.split(":")[0]}, inplace=True)
+            self.__trends_data_buffer.set_index("date_time", inplace=True)
+
+        self.trends_data = self.__trends_data_buffer.copy()
 
         if save_file != "":
             self.trends_data.to_csv(save_file)
