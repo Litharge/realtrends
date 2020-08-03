@@ -209,7 +209,7 @@ class TrendsFetcher:
         retry_csv = 0
         retry_token = 0
 
-        # First retry fetching CSV, if this fails again, retry fetching token
+        # First retry fetching CSV, if this fails again, retry fetching token:
         while fetch_fail:
             self.__get_csv()
             if retry == False:
@@ -226,10 +226,15 @@ class TrendsFetcher:
             retry_csv += 1
             # print("get_csv retry %s" % retry_csv)
 
+        # make the first index "date_time" and the following columns simply
+        # their keywords
         if simple_indexes:
-            self.__trends_data_buffer.rename(columns={self.__trends_data_buffer.columns[0]: "date_time"}, inplace=True)
+            self.__trends_data_buffer.rename(
+                columns={self.__trends_data_buffer.columns[0]: "date_time"},
+                inplace=True)
             for n in self.__trends_data_buffer.columns:
-                self.__trends_data_buffer.rename(columns={n: n.split(":")[0]}, inplace=True)
+                self.__trends_data_buffer.rename(columns={n: n.split(":")[0]},
+                                                 inplace=True)
             self.__trends_data_buffer.set_index("date_time", inplace=True)
 
         self.trends_data = self.__trends_data_buffer.copy()
