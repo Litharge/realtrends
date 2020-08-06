@@ -159,7 +159,7 @@ class TrendsFetcher:
                 }
             },
             """ % (self.__generate_csv_query_request_comparison_item_list_geo(), kw)
-        # Last character is unneeded comma, slice
+        # Last character is unneeded comma, slice:
         return "[%s]" % comparison_item_list[:-1]
 
     def __generate_csv_query_request_request_options(self):
@@ -226,8 +226,11 @@ class TrendsFetcher:
             retry_csv += 1
             # print("get_csv retry %s" % retry_csv)
 
+
+
         # make the first index "date_time" and the following columns simply
-        # their keywords
+        # their keywords. Replace "<1" with "1", convert all entries to
+        # integers
         if simple_indexes:
             self.__trends_data_buffer.rename(
                 columns={self.__trends_data_buffer.columns[0]: "date_time"},
@@ -236,6 +239,11 @@ class TrendsFetcher:
                 self.__trends_data_buffer.rename(columns={n: n.split(":")[0]},
                                                  inplace=True)
             self.__trends_data_buffer.set_index("date_time", inplace=True)
+
+            for i in self.__trends_data_buffer.columns:
+                self.__trends_data_buffer[i] = [str(x).split("<")[-1] if str(x).find("<") != -1 else str(x) for x in self.__trends_data_buffer[i]]
+            for i in self.__trends_data_buffer.columns:
+                self.__trends_data_buffer[i] = [int(x) for x in self.__trends_data_buffer[i]]
 
         self.trends_data = self.__trends_data_buffer.copy()
 
