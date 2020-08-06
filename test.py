@@ -11,7 +11,7 @@ with pandas.option_context("display.max_rows", None, "display.max_columns", None
 
 test_real_fetcher = RealTrendsFetcher()
 
-test_real_fetcher.scrape_real("Tokyo", geo="GB", time_range="1-H")
+test_real_fetcher.scrape_real("paris", geo="GB", time_range="1-H")
 
 # todo tests to go in here: keywords along the spectrum of popularity eg other
 # villages, towns, cities

@@ -1,11 +1,14 @@
 from realtrends import TrendsFetcher
 
+import pandas
+import numpy
+
 # Module to fetch approximate real search volumes for a specified term
 
 class RealTrendsFetcher:
     # todo find a low volume keyword automatically - scrape wikipedia list of villages?
     def __get_ladder(self):
-        self.__ladder = ["brierly", "cinderford", "gloucester", "london"]
+        self.__ladder = ["brierly", "cinderford", "gloucester"]
 
     def __get_reference_index(self):
         relative_fetcher = TrendsFetcher()
@@ -16,16 +19,17 @@ class RealTrendsFetcher:
 
         print(low_volume_profile)
 
-        self.__low_ref_index = low_volume_profile.index[low_volume_profile[self.__ladder[0]] == 100]
+        return low_volume_profile.index[low_volume_profile[self.__ladder[0]] == 100]
 
     # todo use some form of means/clustering to infer absolute value?
     # todo more viable initial method: 100/(lowest value)
     def __get_reference_abs(self):
-        self.__low_abs_vol = 1
+        return 1
 
     def __get_low_reference(self):
-        self.__get_reference_index()
-        self.__get_reference_abs()
+        low_ref_index = self.__get_reference_index()
+        low_abs_vol = self.__get_reference_abs()
+        return low_ref_index, low_abs_vol
 
     def __similar_vol(self, term1, term2):
         #similar_fetcher = TrendsFetcher()
@@ -34,7 +38,7 @@ class RealTrendsFetcher:
         #if similar_fetcher.trends_data[term1].max
         return False
 
-    def __step_absolute(self, low, high):
+    def __step_absolute(self, low, high, low_ref_index, low_abs_vol):
         step_fetcher = TrendsFetcher()
 
         step_fetcher.scrape_trend([low, high],
@@ -44,14 +48,34 @@ class RealTrendsFetcher:
 
         print(step_data)
         # get relative value where low term popularity is highest
-        low_rel_vol = int(step_data.loc[self.__low_ref_index[0], low])
+        low_rel_vol = int(step_data.loc[low_ref_index[0], low])
 
-        self.__high_ref_index = step_data.index[step_data[high] == 100]
+        high_ref_index = step_data.index[step_data[high] == 100]
         high_rel_vol = 100
 
-        self.__high_abs_vol = self.__low_abs_vol * (high_rel_vol / low_rel_vol)
-        print(self.__high_abs_vol)
+        high_abs_vol = low_abs_vol * (high_rel_vol / low_rel_vol)
+        print(high_abs_vol)
 
+        return high_ref_index, high_abs_vol
+
+    def __transform_keyword_data(self, ladder_term, ladder_ref_index, ladder_abs_vol):
+        keyword_fetcher = TrendsFetcher()
+
+        keyword_fetcher.scrape_trend([ladder_term, self.__keyword],
+                geo=self.__geo, time_range=self.__time_range, tz=self.__tz)
+
+        #print(keyword_fetcher.trends_data)
+        keyword_data = keyword_fetcher.trends_data
+
+        ladder_rel_vol = int(keyword_data.loc[ladder_ref_index[0], ladder_term])
+
+        scale_factor = ladder_abs_vol / ladder_rel_vol
+
+        keyword_data[self.__keyword] = [round(x * scale_factor) for x in keyword_data[self.__keyword]]
+        keyword_data.drop(labels=[ladder_term], axis="columns", inplace=True)
+        print(keyword_data)
+
+    # member function to get real trends volume data
     def scrape_real(self, keyword, geo="", time_range="1-H",
                     tz="0", save_file="", retry=True):
         self.__keyword = keyword
@@ -61,7 +85,7 @@ class RealTrendsFetcher:
 
         self.__get_ladder()
 
-        self.__get_low_reference()
+        low_ref_index, low_abs_vol = self.__get_low_reference()
 
         # Work up the ladder until the lowest term magnitude is similar to
         # keyword magnitude:
@@ -74,17 +98,14 @@ class RealTrendsFetcher:
             print("here:")
             print(comp1)
             print(comp2)
-            self.__step_absolute(comp1, comp2)
-            self.__low_ref_index = self.__high_ref_index
-            self.__low_abs_vol = self.__high_abs_vol
+            high_ref_index, high_abs_vol = self.__step_absolute(comp1, comp2, low_ref_index, low_abs_vol)
+            low_ref_index = high_ref_index
+            low_abs_vol = high_abs_vol
             i += 1
 
-        # The values in self.__low_ref_index and self.__low_abs_vol can then
-        # be used to find self.__kw_ref_index and self.__kw_abs_vol. Note that
-        # the loop above terminates when low and keyword are similar, so __low
-        # is used here rather than __high:
-
-        #
+        # If the loop runs through the entire ladder, use the highest item and
+        # its absolute volume
+        self.__transform_keyword_data(self.__ladder[i], low_ref_index, low_abs_vol)
 
     def __init__(self):
         self.__keyword = ""
@@ -97,3 +118,6 @@ class RealTrendsFetcher:
         # index in low volume data to use as reference point
         self.__low_ref_index = ""
         self.__low_abs_vol = 0
+
+        # real volume data for external use
+        self.real_trends_data = pandas.DataFrame()
