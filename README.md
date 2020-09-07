@@ -1,6 +1,6 @@
 # realtrends
-A package to scrape google trends and estimate absolute (real) search volumes of given
-terms.  Data is presented as a DataFrame.
+A package to scrape google trends and estimate absolute (real) search volumes
+of given terms.  Data is presented as a DataFrame.
 
 ## Install
 ```
@@ -15,9 +15,10 @@ Get real search volumes for "rain" amongst UK searchers over past day. Print
 the results and cumulative searches.
 ```
 from realtrends import RealTrendsFetcher
+test_real_fetcher = RealTrendsFetcher()
 test_real_fetcher.scrape_real("rain", geo="GB", time_range="1-d")
 print(test_real_fetcher.real_trends_data)
-print(test_real_fetcher.real_trends_data.sum())
+print(int(test_real_fetcher.real_trends_data.sum()))
 ```
 
 ### Relative
@@ -28,7 +29,9 @@ minutes. Print the result.
 ```
 from realtrends import TrendsFetcher
 my_test_fetcher = TrendsFetcher()
-my_test_fetcher.scrape_trend(["sunhats","snow"], geo="US", time_range="1-d", tz="-360")
+my_test_fetcher.scrape_trend(
+			    ["sunhats","snow"], geo="US",
+			    time_range="1-d", tz="-360")
 print(my_test_fetcher.trends_data)
 ```
 
@@ -38,8 +41,9 @@ print(my_test_fetcher.trends_data)
 
 ```
 def scrape_real(self, search_term, geo="", time_range="1-H",
-                    tz="0", save_file="", retry=True,
-                    ladder = ["englishcombe", "bathampton", "keynsham", "chippenham", "swindon", "bath", "london"]):
+                tz="0", save_file="", retry=True,
+                ladder = ["englishcombe", "bathampton", "keynsham", 
+		"chippenham", "swindon", "bath", "london"]):
 ```
 
 member function puts real search volumes into
@@ -62,7 +66,8 @@ A time range to get trends data across.
 "1-H" past 60 minutes,   
 "4-H" past 240 minutes,   
 "1-d" past 180 * 8 minute intervals,   
-Note: real volumes past this point are likely to be unreliable, see Caveats below  
+Note: real volumes past this point are likely to be unreliable, see Caveats 
+below  
 "7-d" past 7 days,   
 "1-m" past 30 days,   
 "3-m" past 90 days,   
@@ -116,59 +121,61 @@ file is written to
 Decide whether to automatically retry if the server fails
 to send CSV data. Default is True
 
-## Features
-v1.1 (current) 
-* real\_fetch module supports finding real search volumes for a given search term
+## Features v1.1 (current) 
+* real\_fetch module supports finding real search volumes for a given search
+  term
 * fetch module supports up to 5 search terms
 * Any country code may be used (in the case of real\_fetch, see Caveats below)
 * fetch module supports optional save file
 * Optional automatic retry if request fails (mandatory for real\_fetch module)
 
-## Planned Features
-Persistently store search volumes
-Allow search topics to be compared
+## Planned Features Persistently store search volumes Automatically fetch
+ladder Allow search topics to be compared
 
 ## Caveats (and there are a few right now...)
 
 ### The default *ladder* only works for geo="" or geo="GB"
 
-This package relies on inferring absolute (or *real*, the terms may be used 
+This package relies on inferring absolute (or *real*, the terms may be used
 interchangably, in the program "absolute" or "abs" is used everywhere except
 function names, this is due to visual similarity with "rel") search term
-volumes entered into Google Search over some time period.
+volumes entered into Google Search over some time period
 
-In order to make this inference, a list called a *ladder* is needed. This is a list of
-terms increasing in search magnitude, which the algorithm runs up until a term
-of comparable, but less, search magnitude is found. 
+In order to make this inference, a list called a *ladder* is needed. This is a
+list of terms increasing in search magnitude, which the algorithm runs up until
+a term of comparable, but less, search magnitude is found 
 
 The exact terms in the ladder is not important. But using population centres
 gives a reliable estimate of relative magnitudes because we know their
 populations and the number of searches is going to be in some way proportional
-to this number.
+to this number
 
 The default ladder is
 ```
 ladder = ["englishcombe", "bathampton", "keynsham", "chippenham", "swindon", "bath", "london"]
 ```
-which works for worldwide (geo="") or UK (geo="GB" searches, as the number of 
-searches for "englishcombe" in the world or UK is both small (>10) and nonzero. 
+which works for worldwide (geo="") or UK (geo="GB" searches, as the number of
+searches for "englishcombe" in the world or UK is both small (>10) and nonzero 
 
 The default ladder will not work for other countries, eg Angola (geo="AO") as
-"englishcombe", "bathampton" etc are never searched in Angola.
+"englishcombe", "bathampton" etc are never searched in Angola
 
 If you want to know about real search volumes in Angola, use Google Maps to
-find a hamlet, village, town, smaller city, capital (or something else, this
-is up to the user) and pass this list as the ladder keyword parameter
+find a hamlet, village, town, smaller city, capital (or something else, this is
+up to the user) and pass this list as the ladder keyword parameter
 
-### Real volumes are only applicable for 1-H, 4-H or (potentially) 1-d
+### Real volumes are only applicable for 1-H, 4-H and 1-d
 
 This is because the time increments increase as the interval increases: 1 min,
 1 min, 8 min then hour. The problem here is that the first item in the ladder
 will probably be searched many times within 1 hour (or even 8 minutes depending
 on what you select as your first ladder item)
 
-If you really want longer intervals, for now you would need to store the
-results
+If you really want longer intervals, either store the results and update the
+volumes by calling scrape\_real() every day. 
+
+However, longer intervals can be passed to scrape\_real() if the user so
+chooses
 
 ### The results wont be very accurate
 
@@ -176,32 +183,13 @@ todo: testing section
 
 I am working on improving the accuracy of the results, how accurate they are
 right now is difficult to determine, as Google only provides very limited real
-search volmues to test with. These are on the "trending" section, though these 
-figures are for *topics*, rather than search terms. I have done some testing and 
-I feel the results are probably within +-20% of the true figure, I will be 
-adding a testing section to demonstrate this soon.
+search volmues to test with. These are on the "Trending Searches" section,
+though these figures are for *topics*, rather than search terms. I have done
+some testing and I feel the results are probably better than +-20% of the true
+figure, I will be adding a testing section to demonstrate this soon as well as
+a mathematical determination of accuracy
 
 Results are likely to be more accurate for smaller intervals: 1-H or 4-H
 
 
-MIT License
 
-Copyright (c) [2020] [Robert Chambers]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.

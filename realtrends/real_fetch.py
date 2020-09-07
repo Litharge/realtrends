@@ -1,7 +1,6 @@
 from realtrends import TrendsFetcher
 
 import pandas
-import numpy
 
 # Module to fetch approximate real/absolute search volumes for a specified term
 
