@@ -1,19 +1,11 @@
 from realtrends import TrendsFetcher, RealTrendsFetcher
 import pandas
 
-test_fetcher = TrendsFetcher()
-"""
-with pandas.option_context("display.max_rows", None, "display.max_columns", None):
-    for tr in ["1-H","4-H","1-d","7-d","1-m","3-m","12-m","5-y"]:
-        test_fetcher.scrape_trend(["snow", "ice", "sleet", "hail", "rain"], geo="GB", time_range=tr, tz="-60")
-        print(test_fetcher.trends_data)
-"""
-
 test_real_fetcher = RealTrendsFetcher()
 
-test_real_fetcher.scrape_real("Bath", geo="GB", time_range="1-d")
+test_real_fetcher.scrape_real("ftse 100", geo="GB", time_range="1-d")
 
 print(test_real_fetcher.real_trends_data)
 
-# todo tests to go in here: keywords along the spectrum of popularity eg other
-# villages, towns, cities
+# print estimated number of times search term was searched in the last day
+print(test_real_fetcher.real_trends_data.sum())
