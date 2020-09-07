@@ -1,5 +1,5 @@
 # realtrends
-A package to scrape google trends and estimate absolute (real) search volumes
+A package to scrape Google Trends and estimate absolute (real) search volumes
 of given terms.  Data is presented as a DataFrame.
 
 ## Install
@@ -129,8 +129,10 @@ to send CSV data. Default is True
 * fetch module supports optional save file
 * Optional automatic retry if request fails (mandatory for real\_fetch module)
 
-## Planned Features Persistently store search volumes Automatically fetch
-ladder Allow search topics to be compared
+## Planned Features
+Persistently store search volumes   
+Automatically fetch ladder   
+Allow search topics to be compared  
 
 ## Caveats (and there are a few right now...)
 
