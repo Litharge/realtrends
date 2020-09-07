@@ -7,16 +7,22 @@ terms.  Data is presented as a DataFrame.
 pip install realtrends
 ```
 
-## Example
+## Examples
 
 ### Get real search volumes
 
+Get real search volumes for "rain" amongst UK searchers over past day. Print
+the results and cumulative searches.
+```
 from realtrends import RealTrendsFetcher
-
+test_real_fetcher.scrape_real("rain", geo="GB", time_range="1-d")
+print(test_real_fetcher.real_trends_data)
+print(test_real_fetcher.real_trends_data.sum())
+```
 
 ### Relative
 
-get relative search popularities for "sunhats" vs "snow" amongst US searchers 
+Get relative search volumes for "sunhats" vs "snow" amongst US searchers 
 over the past day, where the user's time zone is central = UTC-0600 = -360 in 
 minutes. Print the result.
 ```
@@ -42,6 +48,30 @@ member function puts real search volumes into
 self.real_trends_data
 ```
 
+#### Parameters
+**search\_term : string** \
+Search term to fetch real volume data for
+
+#### Keyword (Named) Parameters
+**geo : string** \
+A country code. eg "GB" for United Kingdom. By default empty,
+indicating global trends
+
+**time\_range : string** \
+A time range to get trends data across.   
+"1-H" past 60 minutes,   
+"4-H" past 240 minutes,   
+"1-d" past 180 * 8 minute intervals,   
+Note: real volumes past this point are likely to be unreliable, see Caveats below  
+"7-d" past 7 days,   
+"1-m" past 30 days,   
+"3-m" past 90 days,   
+"12-m" past 52 weeks  
+
+**tz : string** \
+Timezone relative to UTC in minutes. Default = "0"
+
+
 ### *fetch* Module
 
 If you only want relative search volumes
@@ -62,18 +92,18 @@ Up to 5 search terms to compare
 
 #### Keyword (Named) Parameters
 **geo : string** \
-A country code. eg "GB" for Great Britain. By default empty,
+A country code. eg "GB" for United Kingdom. By default empty,
 indicating global trends
 
 **time\_range : string** \
-A time range to get trends data across. 
-"1-H" past 60 minutes, 
-"4-H" past 240 minutes, 
-"1-d" past 180 * 8 minute intervals, 
-"7-d" past 7 days, 
-"1-m" past 30 days, 
-"3-m" past 90 days, 
-"12-m" past 52 weeks
+A time range to get trends data across.  
+"1-H" past 60 minutes,   
+"4-H" past 240 minutes,   
+"1-d" past 180 * 8 minute intervals,   
+"7-d" past 7 days,   
+"1-m" past 30 days,   
+"3-m" past 90 days,   
+"12-m" past 52 weeks  
 
 **tz : string** \
 Timezone relative to UTC in minutes. Default = "0"
@@ -87,16 +117,16 @@ Decide whether to automatically retry if the server fails
 to send CSV data. Default is True
 
 ## Features
-v1.0 (current) 
-Scrape trends directly from google trends:
-* Supports up to 5 search terms
-* Any country code may be used
-* Optional save file
-* Optional automatic retry if request fails
+v1.1 (current) 
+* real\_fetch module supports finding real search volumes for a given search term
+* fetch module supports up to 5 search terms
+* Any country code may be used (in the case of real\_fetch, see Caveats below)
+* fetch module supports optional save file
+* Optional automatic retry if request fails (mandatory for real\_fetch module)
 
 ## Planned Features
-Get absolute search volumes (hence realtrends) \
-Persistently store search volumes (needs absolute volume to be feasible)
+Persistently store search volumes
+Allow search topics to be compared
 
 ## Caveats (and there are a few right now...)
 
@@ -126,7 +156,7 @@ searches for "englishcombe" in the world or UK is both small (>10) and nonzero.
 The default ladder will not work for other countries, eg Angola (geo="AO") as
 "englishcombe", "bathampton" etc are never searched in Angola.
 
-If you want to know about real search volumes in Angola, use google maps to
+If you want to know about real search volumes in Angola, use Google Maps to
 find a hamlet, village, town, smaller city, capital (or something else, this
 is up to the user) and pass this list as the ladder keyword parameter
 
@@ -134,7 +164,8 @@ is up to the user) and pass this list as the ladder keyword parameter
 
 This is because the time increments increase as the interval increases: 1 min,
 1 min, 8 min then hour. The problem here is that the first item in the ladder
-will probably be searched many times within 1 hour.
+will probably be searched many times within 1 hour (or even 8 minutes depending
+on what you select as your first ladder item)
 
 If you really want longer intervals, for now you would need to store the
 results
