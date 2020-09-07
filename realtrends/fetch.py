@@ -226,22 +226,25 @@ class TrendsFetcher:
             retry_csv += 1
             # print("get_csv retry %s" % retry_csv)
 
-
-
         # make the first index "date_time" and the following columns simply
         # their keywords. Replace "<1" with "1", convert all entries to
         # integers
         if simple_indexes:
+            # make first column name simply "date_time"
             self.__trends_data_buffer.rename(
                 columns={self.__trends_data_buffer.columns[0]: "date_time"},
                 inplace=True)
+            # make column names just the keyword
             for n in self.__trends_data_buffer.columns:
                 self.__trends_data_buffer.rename(columns={n: n.split(":")[0]},
                                                  inplace=True)
+            # set "date_time" column as index
             self.__trends_data_buffer.set_index("date_time", inplace=True)
 
+            # sanitise for "<1"
             for i in self.__trends_data_buffer.columns:
                 self.__trends_data_buffer[i] = [str(x).split("<")[-1] if str(x).find("<") != -1 else str(x) for x in self.__trends_data_buffer[i]]
+            #convert al values back to integers
             for i in self.__trends_data_buffer.columns:
                 self.__trends_data_buffer[i] = [int(x) for x in self.__trends_data_buffer[i]]
 

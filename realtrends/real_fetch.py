@@ -86,19 +86,20 @@ class RealTrendsFetcher:
     # member function to get real trends volume data
     def scrape_real(self, keyword, geo="", time_range="1-H",
                     tz="0", save_file="", retry=True,
-                    ladder = ["brierly", "cinderford", "gloucester", "london"]):
+                    ladder = ["englishcombe", "bathampton", "keynsham", "chippenham", "swindon", "bath", "london"]):
         self.__keyword = keyword
         self.__geo = geo
         self.__time_range = time_range
         self.__tz = tz
 
-        # todo find a low volume keyword automatically -
-        #  scrape wikipedia list of villages?
         self.__ladder = ladder
 
+        #
         low_ref_index, low_abs_vol = self.__get_low_reference()
 
-        # check against ladder base item, if similar then no need to go up the
+        # check against ladder base item (default "englishcombe")
+
+        # if similar then no need to go up the
         # ladder
         if self.__transform_keyword_data(self.__ladder[0],
                                          low_ref_index, low_abs_vol):
