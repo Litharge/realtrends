@@ -44,8 +44,6 @@ class RealTrendsFetcher:
                                   tz=self.__tz)
         step_data = step_fetcher.trends_data
 
-        #print(step_data)
-
         # get relative value where low term popularity is highest
         low_rel_vol = int(step_data.loc[low_ref_index, low_term])
 
@@ -53,7 +51,7 @@ class RealTrendsFetcher:
         # for now just use index where value is 100 as reference point
         # in the future change this to not use very early data points (could
         # go out of range by the time the next request is made) or very
-        # late points (where values are likely to change)
+        # late points (where values are likely to change as searches come in)
         high_ref_index = step_data.index[step_data[high_term] == 100]
         high_rel_vol = 100
 
@@ -69,10 +67,7 @@ class RealTrendsFetcher:
                                      geo=self.__geo,
                                      time_range=self.__time_range,
                                      tz=self.__tz)
-
         search_term_data = keyword_fetcher.trends_data
-
-        #print(search_term_data)
 
         # if ladder_term maximum relative volume is low this means it is not comparable to search_term, so we return
         # false, this then leads to the next ladder term having its reference index and absolute volume calculated
@@ -116,8 +111,7 @@ class RealTrendsFetcher:
         while i < len(self.__ladder) - 1:
             comp1 = self.__ladder[i]
             comp2 = self.__ladder[i+1]
-
-            # find
+            # find a point of known volume for the larger keyword, using the smaller keyword
             high_ref_index, high_abs_vol = self.__step_absolute(comp1, comp2, low_ref_index, low_abs_vol)
 
             if self.__transform_keyword_data(comp2, high_ref_index, high_abs_vol):
