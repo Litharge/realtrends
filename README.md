@@ -147,6 +147,10 @@ In order to make this inference, a list called a *ladder* is needed. This is a
 list of terms increasing in search magnitude, which the algorithm runs up until
 a term of comparable, but less, search magnitude is found 
 
+The first item in the ladder must have very few but nonzero searches in the
+given period. The ladder must run up to the point that the last item in the
+ladder is searched at least ~1/10th as much as the term being investigated.
+
 The exact terms in the ladder is not important. But using population centres
 gives a reliable estimate of relative magnitudes because we know their
 populations and the number of searches is going to be in some way proportional
