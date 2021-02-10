@@ -134,7 +134,7 @@ Persistently store search volumes
 Automatically fetch ladder   
 Allow search topics to be compared  
 
-## Caveats (and there are a few right now...)
+## Caveats
 
 ### The default *ladder* only works for geo="" or geo="GB"
 
@@ -162,7 +162,7 @@ searches for "englishcombe" in the world or UK is both small (>10) and nonzero
 The default ladder will not work for other countries, eg Angola (geo="AO") as
 "englishcombe", "bathampton" etc are never searched in Angola
 
-If you want to know about real search volumes in Angola, use Google Maps to
+If you want to know about real search volumes in a given country, use Google Maps to
 find a hamlet, village, town, smaller city, capital (or something else, this is
 up to the user) and pass this list as the ladder keyword parameter
 
@@ -181,17 +181,10 @@ chooses
 
 ### The results wont be very accurate
 
-todo: testing section
-
-I am working on improving the accuracy of the results, how accurate they are
-right now is difficult to determine, as Google only provides very limited real
-search volmues to test with. These are on the "Trending Searches" section,
-though these figures are for *topics*, rather than search terms. I have done
-some testing and I feel the results are probably better than +-20% of the true
-figure, I will be adding a testing section to demonstrate this soon as well as
-a mathematical determination of accuracy
-
-Results are likely to be more accurate for smaller intervals: 1-H or 4-H
+Google only provides very limited real search volmues to test with. These are
+on the "Trending Searches" section, though these figures are for *topics*, 
+rather than search terms. I have done some testing and I feel the results are
+probably better than +-20% of the true figure.
 
 
 
